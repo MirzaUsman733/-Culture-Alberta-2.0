@@ -1,38 +1,10 @@
-/**
- * Newsletter API Route
- * 
- * Performance optimizations:
- * - Efficient database queries
- * - Proper input validation
- * - No console.logs in production
- * - Proper error handling
- * 
- * Used by:
- * - Newsletter signup forms
- * - Admin panel for subscriber management
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-/**
- * POST handler for newsletter subscription
- * 
- * Handles new subscriptions and re-subscriptions
- * 
- * @param request - Next.js request object with email, city, optIn, source
- * @returns JSON response indicating success or failure
- * 
- * Performance:
- * - Efficient email validation
- * - Single database query for existing email check
- * - Proper error handling
- */
 export async function POST(request: NextRequest) {
   try {
     const { email, city, optIn, source } = await request.json()
 
-    // Validate required fields
     if (!email || !city || !optIn) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -40,7 +12,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -56,7 +27,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists with timeout protection
     const checkQuery = supabase
       .from('newsletter_subscriptions')
       .select('id, status')
@@ -89,7 +59,6 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       } else {
-        // Re-subscribe if previously unsubscribed with timeout protection
         const updateQuery = supabase
           .from('newsletter_subscriptions')
           .update({ 
@@ -133,7 +102,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert new subscriber with timeout protection
     const insertQuery = supabase
       .from('newsletter_subscriptions')
       .insert([
@@ -197,28 +165,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET handler for newsletter subscribers
- * 
- * Returns newsletter subscribers with server-side pagination, filtering, and sorting
- * 
- * Query parameters:
- * - page: number - Page number (default: 1)
- * - limit: number - Items per page (default: 10, max: 100)
- * - status: string - Filter by status (active, unsubscribed, etc.)
- * - city: string - Filter by city
- * - search: string - Search by email
- * - sortBy: string - Sort field: 'newest' | 'oldest' | 'email' (default: 'newest')
- * 
- * @returns JSON response with subscribers array and pagination metadata
- * 
- * Performance:
- * - Server-side pagination (default 10 items per page)
- * - Server-side filtering and sorting
- * - Minimal fields (only essential fields)
- * - Timeout protection
- * - Uses database indexes for fast queries
- */
 export async function GET(request: NextRequest) {
   try {
     if (!supabase) {
@@ -237,7 +183,6 @@ export async function GET(request: NextRequest) {
     
     const offset = (page - 1) * limit
     
-    // PERFORMANCE: Select only essential fields (reduces payload size)
     const essentialFields = [
       'id',
       'email',

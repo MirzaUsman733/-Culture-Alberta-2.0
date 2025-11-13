@@ -1,38 +1,11 @@
-/**
- * Force Refresh API Route
- * 
- * Performance optimizations:
- * - Efficient cache clearing
- * - Proper error handling
- * - No console.logs in production
- * 
- * Used by:
- * - Admin panel to force refresh all caches
- * - Automated cache refresh systems
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
-// Force dynamic rendering - no caching for this endpoint
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-/**
- * POST handler for force refresh
- * 
- * Revalidates all major paths and clears all cache tags
- * 
- * @param request - Next.js request object
- * @returns JSON response indicating success or failure
- * 
- * Performance:
- * - Efficient path and tag revalidation
- * - Proper error handling
- */
 export async function POST(request: NextRequest) {
   try {
-    // PERFORMANCE: Revalidate all major paths
     const pathsToRevalidate = [
       '/',
       '/edmonton',
@@ -47,11 +20,9 @@ export async function POST(request: NextRequest) {
       revalidatePath(path)
     })
     
-    // Revalidate dynamic article and event paths
     revalidatePath('/articles/[slug]', 'page')
     revalidatePath('/events/[slug]', 'page')
     
-    // PERFORMANCE: Clear all cache tags
     const tagsToRevalidate = [
       'articles',
       'events',
@@ -83,11 +54,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET handler for force refresh (returns info message)
- * 
- * @returns JSON response with usage instructions
- */
 export async function GET() {
   return NextResponse.json({ 
     message: 'Force refresh endpoint - use POST to trigger refresh',

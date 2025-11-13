@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-/**
- * Download endpoint to get articles as a downloadable JSON file
- * 
- * Performance optimizations:
- * - Uses optimized Supabase client
- * - Selects only essential fields
- * - Timeout protection
- * - Efficient data transformation
- */
 export async function GET() {
   try {
     if (!supabase) {
       throw new Error('Supabase client is not initialized')
     }
     
-    // PERFORMANCE: Select only essential fields (reduces payload size)
     const essentialFields = [
       'id',
       'title',
@@ -40,14 +30,13 @@ export async function GET() {
       'image_url'
     ].join(',')
     
-    // Build query with timeout protection
     const queryPromise = supabase
       .from('articles')
       .select(essentialFields)
       .order('created_at', { ascending: false })
     
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Query timeout')), 30000) // 30 second timeout
+      setTimeout(() => reject(new Error('Query timeout')), 30000)
     )
     
     const { data: articles, error } = await Promise.race([
@@ -63,7 +52,6 @@ export async function GET() {
       throw new Error('No articles returned from Supabase')
     }
     
-    // Transform articles to match our interface
     const transformedArticles = (articles || []).map((article: any) => ({
       id: article.id,
       title: article.title || '',
@@ -88,11 +76,9 @@ export async function GET() {
       featuredCalgary: article.featured_calgary ?? false
     }))
     
-    // Create filename with timestamp
-    const timestamp = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    const timestamp = new Date().toISOString().split('T')[0]
     const filename = `articles-${timestamp}.json`
     
-    // Return as downloadable JSON file
     return new Response(JSON.stringify(transformedArticles, null, 2), {
       headers: {
         'Content-Type': 'application/json',

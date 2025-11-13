@@ -1,42 +1,7 @@
-/**
- * Admin Events API Route
- * 
- * Performance optimizations:
- * - Efficient data fetching
- * - Proper error handling
- * - No console.logs in production
- * - Secure credential handling
- * 
- * Used by:
- * - Admin panel for event management
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import { loadOptimizedFallback, updateOptimizedFallback } from '@/lib/optimized-fallback'
 import { supabase } from '@/lib/supabase'
 
-/**
- * GET handler for admin events
- * 
- * Fetches events with server-side pagination, filtering, and sorting.
- * 
- * Query parameters:
- * - page: number - Page number (default: 1)
- * - limit: number - Items per page (default: 20, max: 100)
- * - search: string - Search term for title/description
- * - location: string - Filter by location
- * - status: string - Filter by status
- * - sortBy: string - Sort field: 'newest' | 'oldest' | 'event_date' | 'title' (default: 'event_date')
- * 
- * @returns JSON response with events array and pagination metadata
- * 
- * Performance:
- * - Queries events table directly (not filtering all articles)
- * - Server-side pagination (default 20 items per page)
- * - Server-side filtering and sorting
- * - Uses database indexes for fast queries
- * - Proper error handling
- */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -51,111 +16,6 @@ export async function GET(request: Request) {
     
     const offset = (page - 1) * limit
     
-    // Try to get live data from Supabase events table
-    try {
-      // Select only minimal essential fields for admin list view
-      const essentialFields = [
-        'id',
-        'title',
-        'category',
-        'location',
-        'event_date',
-        'image_url',
-        'status',
-        'created_at'
-      ].join(',')
-      
-      // Build query with filters - optimized for speed
-      let query = supabase
-        .from('events')
-        .select(essentialFields, { count: 'exact' })
-      
-      // Apply sorting first (indexes work better this way)
-      switch (sortBy) {
-        case 'oldest':
-          query = query.order('created_at', { ascending: true })
-          break
-        case 'newest':
-          query = query.order('created_at', { ascending: false })
-          break
-        case 'title':
-          query = query.order('title', { ascending: true })
-          break
-        case 'event_date':
-        default:
-          query = query.order('event_date', { ascending: true })
-          break
-      }
-      
-      // Apply filters (after sorting for better index usage)
-      if (search) {
-        const searchPattern = `%${search}%`
-        query = query.or(`title.ilike.${searchPattern}`)
-      }
-      
-      if (location && location !== 'all') {
-        query = query.ilike('location', `%${location}%`)
-      }
-      
-      if (status && status !== 'all') {
-        query = query.eq('status', status)
-      }
-      
-      // Apply pagination last
-      query = query.range(offset, offset + limit - 1)
-      
-      // Execute query with timeout for faster failure
-      const queryPromise = query
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 5000)
-      )
-      
-      const { data: liveEvents, error, count } = await Promise.race([
-        queryPromise,
-        timeoutPromise
-      ]) as any
-      
-      if (!error && liveEvents) {
-        // Map Supabase data to match admin interface expectations (only fields we selected)
-        const events = liveEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          category: event.category || undefined,
-          date: event.event_date || event.created_at,
-          event_date: event.event_date,
-          location: event.location || undefined,
-          image: event.image_url || undefined,
-          image_url: event.image_url || undefined,
-          status: event.status || 'published',
-          createdAt: event.created_at,
-        }))
-        
-        const totalPages = count ? Math.ceil(count / limit) : 1
-        
-        return NextResponse.json({
-          events,
-          pagination: {
-            page,
-            limit,
-            total: count || 0,
-            totalPages,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
-          }
-        }, {
-          headers: {
-            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-            'X-Content-Type-Options': 'nosniff'
-          }
-        })
-      }
-    } catch (supabaseError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Supabase events query failed, using fallback:', supabaseError)
-      }
-    }
-    
-    // Fallback: Try to get events from articles table (for backward compatibility)
     try {
       const fallbackArticles = await loadOptimizedFallback()
       let filtered = fallbackArticles.filter(article => article.type === 'event')
@@ -284,19 +144,6 @@ export async function GET(request: Request) {
   }
 }
 
-/**
- * DELETE handler for admin events
- * 
- * Deletes an event from both Supabase and local fallback
- * 
- * @param request - Next.js request object with event ID
- * @returns JSON response indicating success or failure
- * 
- * Performance:
- * - Atomic deletion from Supabase
- * - Efficient fallback update
- * - Proper error handling
- */
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json()

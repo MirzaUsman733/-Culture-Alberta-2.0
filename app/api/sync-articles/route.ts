@@ -1,19 +1,3 @@
-/**
- * Sync Articles API Route
- * 
- * Performance optimizations:
- * - Efficient data transformation
- * - Proper error handling
- * - No console.logs in production
- * - Secure credential handling (no hardcoded values)
- * - Parallel data fetching
- * 
- * Used by:
- * - Webhook triggers from Supabase
- * - Manual sync operations
- * - Admin panel sync functionality
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -21,16 +5,9 @@ import { clearArticlesCache } from '@/lib/fast-articles'
 import { revalidatePath } from 'next/cache'
 import { supabase } from '@/lib/supabase'
 
-// Force dynamic rendering - no caching
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-/**
- * Transform article data from Supabase format to our interface
- * 
- * @param article - Raw article from Supabase
- * @returns Transformed article object
- */
 function transformArticle(article: any) {
   return {
     id: article.id,
@@ -59,12 +36,6 @@ function transformArticle(article: any) {
   }
 }
 
-/**
- * Transform event data from Supabase format to our interface
- * 
- * @param event - Raw event from Supabase
- * @returns Transformed event object (as article)
- */
 function transformEvent(event: any) {
   return {
     id: event.id,
@@ -82,15 +53,12 @@ function transformEvent(event: any) {
     date: event.event_date || event.created_at || new Date().toISOString(),
     createdAt: event.created_at || new Date().toISOString(),
     updatedAt: event.updated_at || event.created_at || new Date().toISOString(),
-    // Trending flags
     trendingHome: event.featured_home ?? false,
     trendingEdmonton: event.featured_edmonton ?? false,
     trendingCalgary: event.featured_calgary ?? false,
-    // Featured flags
     featuredHome: event.featured_home ?? false,
     featuredEdmonton: event.featured_edmonton ?? false,
     featuredCalgary: event.featured_calgary ?? false,
-    // Event-specific fields
     eventDate: event.event_date || undefined,
     eventEndDate: event.event_end_date || undefined,
     websiteUrl: event.website_url || undefined,
@@ -99,19 +67,11 @@ function transformEvent(event: any) {
   }
 }
 
-/**
- * Fetch and transform articles and events from Supabase
- * 
- * @param limit - Optional limit for articles/events (default: no limit, fetches all)
- * @returns Object with transformed articles and events
- */
 async function fetchAndTransformContent(limit?: number) {
   if (!supabase) {
     throw new Error('Supabase client is not initialized')
   }
 
-  // PERFORMANCE: Optimized field selection - only essential fields
-  // Removed unnecessary fields to reduce payload size
   const articleFields = [
     'id',
     'title',
@@ -174,7 +134,6 @@ async function fetchAndTransformContent(limit?: number) {
     eventsQuery = eventsQuery.limit(limit)
   }
 
-  // PERFORMANCE: Fetch articles and events in parallel with timeout
   const queryPromise = Promise.all([
     articlesQuery,
     eventsQuery
@@ -203,29 +162,17 @@ async function fetchAndTransformContent(limit?: number) {
   return { transformedArticles, transformedEvents }
 }
 
-/**
- * Write content to fallback files
- * 
- * @param allContent - Combined articles and events array
- * @returns Boolean indicating if file was written successfully
- */
 async function writeFallbackFiles(allContent: any[]): Promise<boolean> {
   try {
-    // Update optimized-fallback.json (PRIMARY FILE)
     const optimizedFallbackPath = path.join(process.cwd(), 'optimized-fallback.json')
     await fs.writeFile(optimizedFallbackPath, JSON.stringify(allContent, null, 2))
     
-    // Also update lib/data/articles.json for backward compatibility
     const articlesPath = path.join(process.cwd(), 'lib', 'data', 'articles.json')
     await fs.writeFile(articlesPath, JSON.stringify(allContent, null, 2))
-    
-    // Clear fast cache to force reload
     clearArticlesCache()
     
     return true
   } catch (fileError) {
-    // File writing may fail in production (read-only filesystem)
-    // This is expected and not a critical error
     if (process.env.NODE_ENV === 'development') {
       console.warn('Could not write to local file (this is normal in production):', fileError)
     }
@@ -233,9 +180,6 @@ async function writeFallbackFiles(allContent: any[]): Promise<boolean> {
   }
 }
 
-/**
- * Revalidate all main pages after sync
- */
 function revalidateAllPages() {
   try {
     const pathsToRevalidate = [
@@ -262,38 +206,15 @@ function revalidateAllPages() {
   }
 }
 
-/**
- * POST handler for sync articles
- * 
- * Syncs articles and events from Supabase to local fallback files
- * 
- * @param request - Next.js request object
- * @returns JSON response indicating success or failure
- * 
- * Performance:
- * - Parallel data fetching with timeout protection
- * - Optimized field selection (reduced payload size)
- * - Efficient data transformation
- * - Proper error handling
- */
 export async function POST(request: NextRequest) {
   try {
-    // Parse optional limit from request body
     const body = await request.json().catch(() => ({}))
     const limit = body.limit && typeof body.limit === 'number' ? body.limit : undefined
     
     const { transformedArticles, transformedEvents } = await fetchAndTransformContent(limit)
-    
-    // Combine articles and events
     const allContent = [...transformedArticles, ...transformedEvents]
-    
-    // Check if we're in production
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
-    
-    // Write to fallback files
     const fileWritten = await writeFallbackFiles(allContent)
-    
-    // Revalidate pages
     revalidateAllPages()
     
     return NextResponse.json({ 
@@ -322,35 +243,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET handler for manual sync trigger
- * 
- * Same as POST but can be triggered via GET request
- * 
- * Query parameters:
- * - limit: number - Optional limit for articles/events (default: no limit)
- * 
- * @returns Same as POST handler
- */
 export async function GET(request: NextRequest) {
   try {
-    // Parse optional limit from query parameters
     const { searchParams } = new URL(request.url)
     const limitParam = searchParams.get('limit')
     const limit = limitParam ? parseInt(limitParam, 10) : undefined
     
     const { transformedArticles, transformedEvents } = await fetchAndTransformContent(limit)
-    
-    // Combine articles and events
     const allContent = [...transformedArticles, ...transformedEvents]
-    
-    // Check if we're in production
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
-    
-    // Write to fallback files
     const fileWritten = await writeFallbackFiles(allContent)
-    
-    // Revalidate pages
     revalidateAllPages()
     
     return NextResponse.json({ 

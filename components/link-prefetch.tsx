@@ -1,15 +1,3 @@
-/**
- * Link Prefetch Component
- * 
- * Automatically prefetches links on hover for instant navigation
- * 
- * Performance optimizations:
- * - Prefetches on hover (not on mount)
- * - Only prefetches visible links
- * - Uses Next.js prefetch API
- * - Reduces perceived load time
- */
-
 "use client"
 
 import { useEffect, useRef } from 'react'
@@ -22,14 +10,6 @@ interface LinkPrefetchProps {
   prefetch?: boolean
 }
 
-/**
- * Link component with automatic prefetching on hover
- * 
- * @param href - Link destination
- * @param children - Link content
- * @param className - CSS classes
- * @param prefetch - Whether to enable prefetching (default: true)
- */
 export function LinkPrefetch({ 
   href, 
   children, 
@@ -45,7 +25,6 @@ export function LinkPrefetch({
 
     const link = linkRef.current
 
-    // Prefetch on hover (faster than on mount)
     const handleMouseEnter = () => {
       if (!prefetchedRef.current && href.startsWith('/')) {
         router.prefetch(href)
@@ -53,7 +32,6 @@ export function LinkPrefetch({
       }
     }
 
-    // Also prefetch if link is visible in viewport
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -63,7 +41,7 @@ export function LinkPrefetch({
           }
         })
       },
-      { rootMargin: '50px' } // Prefetch when 50px away from viewport
+      { rootMargin: '50px' }
     )
 
     link.addEventListener('mouseenter', handleMouseEnter)

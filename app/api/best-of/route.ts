@@ -1,21 +1,3 @@
-/**
- * Best Of Articles API Route
- * 
- * Optimized API for fetching best-of articles with server-side filtering and pagination
- * 
- * Query parameters:
- * - page: number - Page number (default: 1)
- * - limit: number - Items per page (default: 10, max: 50)
- * - category: string - Filter by category
- * - search: string - Search term
- * 
- * Performance:
- * - Server-side filtering (only best-of articles)
- * - Server-side pagination (default 10 items per page)
- * - Minimal fields (no content field)
- * - Uses database indexes for fast queries
- */
-
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { loadOptimizedFallback } from '@/lib/optimized-fallback'
@@ -32,9 +14,7 @@ export async function GET(request: Request) {
     
     const offset = (page - 1) * limit
     
-    // Try to get live data from Supabase first
     try {
-      // Select only minimal essential fields for best-of list view
       const essentialFields = [
         'id',
         'title',

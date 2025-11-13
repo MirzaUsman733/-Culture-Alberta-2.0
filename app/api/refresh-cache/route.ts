@@ -1,41 +1,14 @@
-/**
- * Cache Refresh API Route
- * 
- * Performance optimizations:
- * - Efficient cache clearing
- * - Proper error handling
- * - No console.logs in production
- * 
- * Used by:
- * - Admin panel to manually refresh cache
- * - Automated cache refresh systems
- */
-
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { clearArticlesCache } from '@/lib/supabase-articles'
 
-// Force dynamic rendering - no caching for this endpoint
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-/**
- * POST handler for cache refresh
- * 
- * Clears in-memory cache and revalidates Next.js paths
- * 
- * @returns JSON response indicating success or failure
- * 
- * Performance:
- * - Efficient path revalidation
- * - Proper error handling
- */
 export async function POST() {
   try {
-    // Clear in-memory articles cache
     clearArticlesCache()
     
-    // PERFORMANCE: Revalidate all main pages in parallel
     const pathsToRevalidate = [
       '/',
       '/edmonton',
@@ -69,11 +42,6 @@ export async function POST() {
   }
 }
 
-/**
- * GET handler for cache refresh (for easy browser testing)
- * 
- * @returns Same as POST handler
- */
 export async function GET() {
   return POST()
 }

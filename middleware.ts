@@ -2,9 +2,15 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  // PERFORMANCE: Skip middleware for admin routes (no caching, no prefetching)
+  if (request.nextUrl.pathname.startsWith('/admin') || 
+      request.nextUrl.pathname.startsWith('/api/admin')) {
+    return NextResponse.next()
+  }
+
   const response = NextResponse.next()
 
-  // PERFORMANCE: Aggressive edge caching for instant loads
+  // PERFORMANCE: Aggressive edge caching for instant loads (only public pages)
   if (request.nextUrl.pathname.startsWith('/articles/')) {
     // Cache article pages aggressively (5 min CDN, 10 min stale-while-revalidate)
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600, max-age=60')
@@ -20,7 +26,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300, max-age=30')
   }
 
-  // PERFORMANCE: Add prefetch hints for faster navigation
+  // PERFORMANCE: Add prefetch hints for faster navigation (only public routes)
   if (request.nextUrl.pathname.startsWith('/articles/')) {
     response.headers.set('Link', '</articles>; rel=prefetch, </events>; rel=prefetch')
   }
@@ -36,6 +42,9 @@ export const config = {
     '/calgary', 
     '/culture',
     '/food-drink',
-    '/events'
+    '/events',
+    '/best-of',
+    '/admin/:path*',
+    '/api/admin/:path*'
   ]
 }

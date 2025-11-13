@@ -1,22 +1,3 @@
-/**
- * Optimized Homepage Component
- * 
- * Performance optimizations:
- * - Uses ISR (Incremental Static Regeneration) for fast loads
- * - Parallel data fetching (articles + events)
- * - Efficient filtering with utility functions
- * - Optimized images with Next.js Image component
- * - No console.logs in production
- * - Proper TypeScript types
- * 
- * Caching strategy:
- * - Revalidates every 60 seconds (fresh content)
- * - Falls back to cached version if fetch fails
- * - Reduces server load and improves TTFB
- * 
- * Used as: Main homepage route
- */
-
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'

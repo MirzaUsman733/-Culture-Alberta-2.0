@@ -1,22 +1,3 @@
-/**
- * Optimized Article Detail Page
- * 
- * Performance optimizations:
- * - Uses ISR (Incremental Static Regeneration) for fast loads
- * - Efficient article lookup with fallback strategies
- * - Optimized content processing
- * - Client-side reading progress component
- * - Proper image optimization
- * - No console.logs in production
- * 
- * Caching strategy:
- * - Revalidates every 300 seconds (5 minutes)
- * - Falls back to cached version if fetch fails
- * - Reduces server load and improves TTFB
- * 
- * Used as: Article detail route (/articles/[slug])
- */
-
 import { notFound, redirect } from 'next/navigation'
 import { Clock, Share2, Bookmark, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
@@ -37,18 +18,8 @@ import { getAllArticles } from '@/lib/articles'
 import ArticleNewsletterSignup from '@/components/article-newsletter-signup'
 import { ReadingProgress } from '@/components/reading-progress'
 
-// PERFORMANCE: Use ISR with aggressive caching for instant loads
-// Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
 
-/**
- * Formats a date string to readable format (e.g., "January 15, 2024")
- * 
- * @param dateString - ISO date string
- * @returns Formatted date string
- * 
- * Performance: O(1) - constant time operation
- */
 function formatArticleDate(dateString: string | undefined): string {
   if (!dateString) return ''
   
@@ -67,23 +38,10 @@ function formatArticleDate(dateString: string | undefined): string {
   }
 }
 
-/**
- * Generates static params for all published articles
- * 
- * Performance:
- * - Only runs at build time
- * - Caches results
- * - Limits to published articles only
- * 
- * @returns Array of slug params for static generation
- */
 export async function generateStaticParams() {
   try {
-    // PERFORMANCE: Use optimized fallback (faster, only runs at build time)
     const { loadOptimizedFallback } = await import('@/lib/optimized-fallback')
     const allContent = await loadOptimizedFallback()
-    
-    // Filter for published articles only (exclude events)
     const publishedArticles = allContent.filter(
       (article: any) => 
         article.type !== 'event' &&
@@ -102,17 +60,6 @@ export async function generateStaticParams() {
   }
 }
 
-/**
- * Generates metadata for SEO and social media sharing
- * 
- * @param params - Route parameters containing slug
- * @returns Metadata object for Next.js
- * 
- * Performance:
- * - Uses fast article lookup
- * - Falls back gracefully if article not found
- * - Optimizes image URLs
- */
 export async function generateMetadata({ 
   params 
 }: { 
@@ -141,7 +88,6 @@ export async function generateMetadata({
     
     const fullUrl = `https://www.culturealberta.com/articles/${slug}`
     
-    // Handle image URL - ensure it's absolute
     let articleImage = article.imageUrl || '/images/culture-alberta-og.jpg'
     const absoluteImageUrl = articleImage.startsWith('http') 
       ? articleImage 
@@ -209,22 +155,6 @@ export async function generateMetadata({
   }
 }
 
-/**
- * Article Detail Page Component
- * 
- * Renders a full article with:
- * - Article header with metadata
- * - Featured image
- * - Article content (processed with videos)
- * - Related articles
- * - Newsletter signup
- * 
- * Performance:
- * - Server-side rendered with ISR
- * - Optimized image loading
- * - Efficient content processing
- * - Client-side reading progress
- */
 export default async function ArticlePage({ 
   params 
 }: { 
@@ -234,10 +164,8 @@ export default async function ArticlePage({
   const slug = resolvedParams.slug
   
   try {
-    // PERFORMANCE: Use optimized article lookup (fast cache first)
     let article = await findArticleBySlug(slug)
     
-    // Check if this might be an event instead
     if (!article) {
       const event = await checkEventSlug(slug)
       if (event) {
@@ -246,13 +174,8 @@ export default async function ArticlePage({
       notFound()
     }
     
-    // PERFORMANCE: Ensure full content is loaded (lazy fetch if needed)
     article = await ensureFullContent(article, slug)
-    
-    // PERFORMANCE: Load related articles in parallel (non-blocking)
     const relatedArticlesPromise = getRelatedArticles(article, 6)
-    
-    // Process content once
     const processedContent = article.content && 
                              typeof article.content === 'string' && 
                              article.content.trim().length > 10 &&
@@ -261,7 +184,6 @@ export default async function ArticlePage({
       ? processContentWithVideos(article.content)
       : null
     
-    // Wait for related articles
     const relatedArticles = await relatedArticlesPromise
 
     return (
@@ -303,21 +225,17 @@ export default async function ArticlePage({
                   </button>
                 </div>
               </div>
-              {/* Reading Progress Bar - Client Component */}
               <div className="mt-3">
                 <ReadingProgress />
               </div>
             </div>
           </div>
 
-          {/* Article Content */}
           <div className="bg-white">
             <div className="container mx-auto px-4 py-8">
               <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  {/* Main Article Content */}
                   <div className="lg:col-span-3 space-y-8">
-                    {/* Article Header */}
                     <div className="space-y-6">
                       <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                         {article.category && (
@@ -356,7 +274,6 @@ export default async function ArticlePage({
                       )}
                     </div>
 
-                    {/* Featured Image */}
                     {article.imageUrl && (
                       <div className="relative w-full h-[400px] lg:h-[500px] rounded-xl overflow-hidden">
                         {article.imageUrl.startsWith('data:image') ? (
@@ -383,7 +300,6 @@ export default async function ArticlePage({
                       </div>
                     )}
 
-                    {/* Article Content */}
                     <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
                       <div className="article-content">
                         {processedContent ? (
@@ -419,7 +335,6 @@ export default async function ArticlePage({
                       </div>
                     </div>
 
-                    {/* Article Footer */}
                     <div className="flex items-center justify-end pt-8 border-t border-gray-200">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <time dateTime={article.date || article.createdAt}>
@@ -428,21 +343,17 @@ export default async function ArticlePage({
                       </div>
                     </div>
 
-                    {/* Newsletter Signup */}
                     <ArticleNewsletterSignup 
                       articleTitle={article.title}
                       articleCategory={article.category}
                     />
 
-                    {/* Related Articles Section */}
                     {relatedArticles.length > 0 && (
                       <RelatedArticlesSection articles={relatedArticles} />
                     )}
                   </div>
 
-                  {/* Sidebar */}
                   <div className="lg:col-span-2 space-y-6">
-                    {/* Latest Articles Sidebar */}
                     <LatestArticlesSidebar articles={relatedArticles.slice(0, 3)} />
                   </div>
                 </div>
@@ -460,13 +371,6 @@ export default async function ArticlePage({
   }
 }
 
-/**
- * Related Articles Section Component
- * 
- * Displays related articles in a grid layout
- * 
- * @param articles - Array of related articles
- */
 function RelatedArticlesSection({ articles }: { articles: Article[] }) {
   return (
     <div className="mt-16 pt-12 border-t border-gray-200">
@@ -482,13 +386,6 @@ function RelatedArticlesSection({ articles }: { articles: Article[] }) {
   )
 }
 
-/**
- * Article Card Component for Related Articles
- * 
- * Reusable card component for displaying article previews
- * 
- * @param article - Article object to display
- */
 function ArticleCard({ article }: { article: Article }) {
   return (
     <Link 
@@ -548,13 +445,6 @@ function ArticleCard({ article }: { article: Article }) {
   )
 }
 
-/**
- * Latest Articles Sidebar Component
- * 
- * Displays a compact list of latest articles
- * 
- * @param articles - Array of articles to display
- */
 function LatestArticlesSidebar({ articles }: { articles: Article[] }) {
   if (articles.length === 0) {
     return null

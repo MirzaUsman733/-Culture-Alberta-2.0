@@ -21,6 +21,14 @@ const nextConfig = {
   // PERFORMANCE: Enable compression (removed duplicate)
   compress: true,
   
+  // PERFORMANCE: Disable automatic prefetching for admin routes
+  // This prevents Next.js from prefetching admin pages on every public page
+  onDemandEntries: {
+    // Keep pages in memory for faster navigation
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+  
   // Production-specific optimizations
   ...(process.env.NODE_ENV === 'production' && {
     experimental: {

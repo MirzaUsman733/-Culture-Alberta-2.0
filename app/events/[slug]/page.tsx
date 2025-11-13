@@ -1,21 +1,3 @@
-/**
- * Optimized Event Detail Page
- * 
- * Performance optimizations:
- * - Uses ISR (Incremental Static Regeneration) for fast loads
- * - Efficient data fetching with utility functions
- * - Optimized images with Next.js Image component
- * - No console.logs in production
- * - Reusable components for better maintainability
- * 
- * Caching strategy:
- * - Revalidates every 300 seconds (5 minutes)
- * - Falls back to cached version if fetch fails
- * - Reduces server load and improves TTFB
- * 
- * Used as: Event detail page route (/events/[slug])
- */
-
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -34,21 +16,8 @@ import { findEventBySlug, generateEventStaticParams, getEventDetailPageData } fr
 import { formatEventDate, formatEventTime, formatEventDateWithWeekday } from '@/lib/utils/date'
 import { getArticleTitle, getArticleExcerpt, getArticleImage, getArticleCategory } from '@/lib/utils/article-helpers'
 
-// PERFORMANCE: Use ISR for better performance
-// Revalidates every 5 minutes - balances freshness with performance
-// PERFORMANCE: Use ISR with aggressive caching for instant loads
-// Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
 
-/**
- * Generates static params for all published events
- * 
- * @returns Array of slug parameters for static generation
- * 
- * Performance:
- * - Only generates params for published events
- * - Uses consistent slug generation
- */
 export async function generateStaticParams() {
   return await generateEventStaticParams()
 }

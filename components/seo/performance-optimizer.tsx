@@ -4,121 +4,38 @@ import { useEffect } from 'react'
 
 export function PerformanceOptimizer() {
   useEffect(() => {
-    // Optimize images for better Core Web Vitals
-    const optimizeImages = () => {
-      const images = document.querySelectorAll('img')
-      images.forEach((img) => {
-        // Add loading="lazy" to images below the fold
-        if (!img.hasAttribute('loading')) {
-          const rect = img.getBoundingClientRect()
-          if (rect.top > window.innerHeight) {
-            img.setAttribute('loading', 'lazy')
-          }
-        }
-        
-        // Add decoding="async" for better performance
-        if (!img.hasAttribute('decoding')) {
-          img.setAttribute('decoding', 'async')
-        }
-        
-        // Ensure proper alt text for accessibility and SEO
-        if (!img.hasAttribute('alt') || img.getAttribute('alt') === '') {
-          img.setAttribute('alt', 'Culture Alberta image')
-        }
-      })
+    if (typeof window === 'undefined' || window.location.pathname.startsWith('/admin')) {
+      return
     }
 
-    // Optimize fonts for better LCP
-    const optimizeFonts = () => {
-      // Skip font preloading since the font file doesn't exist
-      // This prevents 404 errors in the console
-      console.log('Skipping font preload - using system fonts')
-    }
-
-    // Optimize third-party scripts
-    const optimizeThirdPartyScripts = () => {
-      // Defer non-critical scripts
-      const scripts = document.querySelectorAll('script[src]')
-      scripts.forEach((script) => {
-        if (!script.hasAttribute('defer') && !script.hasAttribute('async')) {
-          const src = script.getAttribute('src')
-          if (src && !src.includes('googletagmanager') && !src.includes('analytics')) {
-            script.setAttribute('defer', 'true')
-          }
-        }
-      })
-    }
-
-    // Add resource hints for better performance
-    const addResourceHints = () => {
-      // Preconnect to external domains
-      const domains = [
-        'https://fonts.googleapis.com',
-        'https://fonts.gstatic.com',
+    const timeoutId = setTimeout(() => {
+      const existingHints = document.querySelectorAll('link[rel="preconnect"]')
+      const existingDomains = Array.from(existingHints).map(link => link.getAttribute('href'))
+      
+      const criticalDomains = [
         'https://www.googletagmanager.com',
         'https://www.google-analytics.com'
       ]
       
-      domains.forEach((domain) => {
-        const link = document.createElement('link')
-        link.rel = 'preconnect'
-        link.href = domain
-        link.crossOrigin = 'anonymous'
-        document.head.appendChild(link)
-      })
-    }
-
-    // Optimize CSS delivery
-    const optimizeCSS = () => {
-      // Add critical CSS inline for above-the-fold content
-      const criticalCSS = `
-        body { font-family: system-ui, -apple-system, sans-serif; }
-        .loading-spinner { display: none; }
-        .main-navigation { position: sticky; top: 0; z-index: 50; }
-      `
-      
-      const style = document.createElement('style')
-      style.textContent = criticalCSS
-      document.head.appendChild(style)
-    }
-
-    // Run optimizations
-    optimizeImages()
-    optimizeFonts()
-    optimizeThirdPartyScripts()
-    addResourceHints()
-    optimizeCSS()
-
-    // Re-optimize images when new content loads
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element
-              if (element.tagName === 'IMG' || element.querySelector('img')) {
-                setTimeout(optimizeImages, 100)
-              }
-            }
-          })
+      criticalDomains.forEach((domain) => {
+        if (!existingDomains.includes(domain)) {
+          const link = document.createElement('link')
+          link.rel = 'preconnect'
+          link.href = domain
+          link.crossOrigin = 'anonymous'
+          document.head.appendChild(link)
         }
       })
-    })
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    })
+    }, 100)
 
     return () => {
-      observer.disconnect()
+      clearTimeout(timeoutId)
     }
   }, [])
 
   return null
 }
 
-// Component for optimizing article images specifically
 export function ArticleImageOptimizer({ src, alt, className = "" }: { 
   src: string
   alt: string
@@ -138,7 +55,6 @@ export function ArticleImageOptimizer({ src, alt, className = "" }: {
         objectFit: 'cover'
       }}
       onError={(e) => {
-        // Fallback to default image if loading fails
         const target = e.target as HTMLImageElement
         target.src = '/images/culture-alberta-og.jpg'
         target.alt = 'Culture Alberta'
