@@ -2,21 +2,12 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 
 // Read env from .env.local file manually
-const envPath = '.env.local';
 let supabaseUrl, supabaseKey;
 
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf-8');
-  const urlMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_URL=(.+)/);
-  const keyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.+)/);
-  
-  if (urlMatch) supabaseUrl = urlMatch[1].trim();
-  if (keyMatch) supabaseKey = keyMatch[1].trim();
-}
 
 // Fallback to environment variables
-if (!supabaseUrl) supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-if (!supabaseKey) supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseUrl) supabaseUrl = 'https://itdmwpbsnviassgqfhxk.supabase.co';
+if (!supabaseKey) supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0ZG13cGJzbnZpdmFzc2dxZmh4ayIsInJlc291cmNlIjoic3ViYXNlYyIsImlhdCI6MTczMTYyOTI5MiwiZXhwIjoyMDQ3MjA1MjkyfQ.T3H8J8mBQzTJf687K0OjOZx2p5wzC2pZ8H1j4WUJwQ';
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ Missing Supabase credentials!');

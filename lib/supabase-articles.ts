@@ -146,7 +146,7 @@ export async function checkArticlesTable(): Promise<boolean> {
 export async function testSupabaseConnection(): Promise<boolean> {
   try {
     console.log('Testing Supabase connection...')
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL || 'Using fallback URL')
+    console.log('Supabase URL:', 'https://itdmwpbsnviassgqfhxk.supabase.co')
     console.log('Supabase client initialized:', !!supabase)
     
     if (!supabase) {
@@ -600,8 +600,8 @@ export async function getCityArticles(city: 'edmonton' | 'calgary'): Promise<Art
       VERCEL: process.env.VERCEL,
       VERCEL_ENV: process.env.VERCEL_ENV,
       shouldUseFileSystem: shouldUseFileSystem(),
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'using fallback',
-      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'using fallback'
+      supabaseUrl: 'https://itdmwpbsnviassgqfhxk.supabase.co',
+      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0ZG13cGJzbnZpYXNzZ3FmaHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0ODU5NjUsImV4cCI6MjA2OTA2MTk2NX0.pxAXREQJrXJFZEBB3s7iwfm3rV_C383EbWCwf6ayPQo'
     })
     
     if (!supabase) {
@@ -911,8 +911,8 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     console.log('=== getArticleBySlug called for:', slug)
     console.log('🔄 CACHE BUST: Forcing fresh lookup for slug:', slug)
     console.log('🌍 Environment:', process.env.NODE_ENV)
-    console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT SET')
-    console.log('🔑 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET')
+    console.log('🔗 Supabase URL:', 'https://itdmwpbsnviassgqfhxk.supabase.co')
+    console.log('🔑 Supabase Key:', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0ZG13cGJzbnZpYXNzZ3FmaHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0ODU5NjUsImV4cCI6MjA2OTA2MTk2NX0.pxAXREQJrXJFZEBB3s7iwfm3rV_C383EbWCwf6ayPQo')
     console.log('📡 Supabase client:', supabase ? 'INITIALIZED' : 'NOT INITIALIZED')
     
     // CRITICAL FIX: For article lookups, prioritize Supabase over file system
@@ -920,8 +920,8 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     if (!supabase) {
       console.error('❌ CRITICAL ERROR: Supabase client is not initialized')
       console.error('Environment variables check:')
-      console.error('- NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.error('- NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET')
+      console.error('- NEXT_PUBLIC_SUPABASE_URL:', 'https://itdmwpbsnviassgqfhxk.supabase.co')
+      console.error('- NEXT_PUBLIC_SUPABASE_ANON_KEY:', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0ZG13cGJzbnZpYXNzZ3FmaHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0ODU5NjUsImV4cCI6MjA2OTA2MTk2NX0.pxAXREQJrXJFZEBB3s7iwfm3rV_C383EbWCwf6ayPQo')
       
       // EMERGENCY FALLBACK: Create Supabase client directly
       console.log('🚨 EMERGENCY FALLBACK: Creating Supabase client directly')
