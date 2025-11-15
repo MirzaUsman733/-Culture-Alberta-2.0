@@ -14,138 +14,195 @@
 
 import { Article } from '@/lib/types/article'
 import { createSlug } from '@/lib/utils/slug'
-import { getFastArticleBySlug, getFastArticles } from '@/lib/fast-articles'
+import { getFastArticles } from '@/lib/fast-articles'
 import { supabase } from '@/lib/supabase'
 import { loadOptimizedFallback } from '@/lib/optimized-fallback'
 import { getAllEvents } from '@/lib/events'
 
+// PERFORMANCE: Slug-to-article index for O(1) lookup
+let slugIndex: Map<string, Article> | null = null
+let articlesCache: Article[] | null = null
+let cacheTimestamp: number = 0
+const CACHE_DURATION = 2 * 60 * 1000 // 2 minutes
+
 /**
- * OPTIMIZED: Finds an article by slug using optimized queries
+ * Builds a slug index from articles for O(1) lookup
+ */
+function buildSlugIndex(articles: Article[]): Map<string, Article> {
+  const index = new Map<string, Article>()
+  
+  for (const article of articles) {
+    const slug = createSlug(article.title).toLowerCase()
+    index.set(slug, article)
+    
+    // Also index by ID for fallback lookup
+    if (article.id) {
+      index.set(article.id.toLowerCase(), article)
+    }
+  }
+  
+  return index
+}
+
+/**
+ * Gets articles and builds index if needed
+ */
+async function getArticlesWithIndex(): Promise<{ articles: Article[], index: Map<string, Article> }> {
+  const now = Date.now()
+  
+  // Return cached if still fresh
+  if (articlesCache && slugIndex && now - cacheTimestamp < CACHE_DURATION) {
+    return { articles: articlesCache, index: slugIndex }
+  }
+  
+  // Load articles from optimized fallback (fastest source)
+  let articles: Article[] = []
+  
+  try {
+    articles = await loadOptimizedFallback()
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to load optimized fallback:', error)
+    }
+  }
+  
+  // Build index
+  slugIndex = buildSlugIndex(articles)
+  articlesCache = articles
+  cacheTimestamp = now
+  
+  return { articles, index: slugIndex }
+}
+
+/**
+ * OPTIMIZED: Finds an article by slug using O(1) index lookup
  * 
  * @param slug - Article slug to find
  * @returns Article object or null if not found
  * 
  * Performance:
- * - Tries fast cache first (O(n) lookup)
- * - Uses optimized Supabase query with minimal fields
- * - Timeout protection (5 seconds)
- * - Falls back to optimized fallback file
+ * - Uses O(1) slug index lookup (no array search)
+ * - Single file read with caching
+ * - Avoids redundant Supabase queries
+ * - Fast fallback to optimized file
  * 
  * Used in:
  * - app/articles/[slug]/page.tsx (article loading)
  */
 export async function findArticleBySlug(slug: string): Promise<Article | null> {
-  // PERFORMANCE: Try fast cache first (in-memory, fastest)
-  let article = await getFastArticleBySlug(slug)
+  const normalizedSlug = slug.toLowerCase()
+  
+  // PERFORMANCE: Use O(1) index lookup instead of O(n) search
+  const { index } = await getArticlesWithIndex()
+  let article = index.get(normalizedSlug)
   
   if (article) {
     return article as Article
   }
   
-  // PERFORMANCE: Try fast articles array (already loaded)
-  const fastArticles = await getFastArticles()
-  article = fastArticles.find(article => {
-    const articleSlug = createSlug(article.title)
-    return articleSlug.toLowerCase() === slug.toLowerCase()
-  })
-  
-  if (article) {
-    return article as Article
-  }
-  
-  // PERFORMANCE: Try optimized Supabase query (minimal fields, no content)
-  try {
-    const articlePreviewFields = [
-      'id',
-      'title',
-      'excerpt',
-      'category',
-      'categories',
-      'location',
-      'author',
-      'tags',
-      'type',
-      'status',
-      'created_at',
-      'updated_at',
-      'trending_home',
-      'trending_edmonton',
-      'trending_calgary',
-      'featured_home',
-      'featured_edmonton',
-      'featured_calgary',
-      'image_url'
-    ].join(',')
-    
-    const articlesQuery = supabase
-      .from('articles')
-      .select(articlePreviewFields)
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(50)
-    
-    const queryPromise = articlesQuery
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Query timeout')), 5000)
-    )
-    
-    const { data, error } = await Promise.race([
-      queryPromise,
-      timeoutPromise
-    ]) as any
-    
-    if (!error && data) {
-      const foundArticle = data.find((article: any) => {
-        const articleSlug = createSlug(article.title)
-        return articleSlug.toLowerCase() === slug.toLowerCase()
-      })
-      
-      if (foundArticle) {
-        return {
-          id: foundArticle.id,
-          title: foundArticle.title,
-          excerpt: foundArticle.excerpt || '',
-          category: foundArticle.category || '',
-          categories: foundArticle.categories || [],
-          location: foundArticle.location || '',
-          author: foundArticle.author || '',
-          tags: foundArticle.tags || [],
-          type: foundArticle.type || 'article',
-          status: foundArticle.status || 'published',
-          imageUrl: foundArticle.image_url || '',
-          date: foundArticle.created_at,
-          createdAt: foundArticle.created_at,
-          updatedAt: foundArticle.updated_at || foundArticle.created_at,
-          trendingHome: foundArticle.trending_home ?? false,
-          trendingEdmonton: foundArticle.trending_edmonton ?? false,
-          trendingCalgary: foundArticle.trending_calgary ?? false,
-          featuredHome: foundArticle.featured_home ?? false,
-          featuredEdmonton: foundArticle.featured_edmonton ?? false,
-          featuredCalgary: foundArticle.featured_calgary ?? false,
-        } as Article
+  // Try alternative slug variations (in case of slight differences)
+  for (const [indexSlug, indexedArticle] of index.entries()) {
+    if (indexSlug.includes(normalizedSlug) || normalizedSlug.includes(indexSlug)) {
+      // Verify it's a close match
+      const articleSlug = createSlug(indexedArticle.title).toLowerCase()
+      if (articleSlug === normalizedSlug || 
+          articleSlug.includes(normalizedSlug) || 
+          normalizedSlug.includes(articleSlug)) {
+        return indexedArticle as Article
       }
     }
-  } catch (error) {
-    // Supabase failed, continue to fallback
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Supabase lookup failed:', error)
-    }
   }
   
-  // Fallback to optimized fallback file
-  try {
-    const fallbackArticles = await loadOptimizedFallback()
-    const foundArticle = fallbackArticles.find((item: any) => {
-      const articleSlug = createSlug(item.title)
-      return articleSlug.toLowerCase() === slug.toLowerCase()
-    })
-    
-    if (foundArticle) {
-      return foundArticle as Article
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Fallback lookup failed:', error)
+  // PERFORMANCE: Skip Supabase query in production (use fallback file only)
+  // Supabase queries are slow and the fallback file should have all articles
+  if (process.env.NODE_ENV === 'development') {
+    // Only try Supabase in development for debugging
+    try {
+      const articlePreviewFields = [
+        'id',
+        'title',
+        'excerpt',
+        'category',
+        'categories',
+        'location',
+        'author',
+        'tags',
+        'type',
+        'status',
+        'created_at',
+        'updated_at',
+        'trending_home',
+        'trending_edmonton',
+        'trending_calgary',
+        'featured_home',
+        'featured_edmonton',
+        'featured_calgary',
+        'image_url',
+        'content'
+      ].join(',')
+      
+      const articlesQuery = supabase
+        .from('articles')
+        .select(articlePreviewFields)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      
+      const queryPromise = articlesQuery
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 3000) // Reduced to 3s
+      )
+      
+      const { data, error } = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]) as any
+      
+      if (!error && data) {
+        const foundArticle = data.find((article: any) => {
+          const articleSlug = createSlug(article.title)
+          return articleSlug.toLowerCase() === normalizedSlug
+        })
+        
+        if (foundArticle) {
+          const article: Article = {
+            id: foundArticle.id,
+            title: foundArticle.title,
+            excerpt: foundArticle.excerpt || '',
+            category: foundArticle.category || '',
+            categories: foundArticle.categories || [],
+            location: foundArticle.location || '',
+            author: foundArticle.author || '',
+            tags: foundArticle.tags || [],
+            type: foundArticle.type || 'article',
+            status: foundArticle.status || 'published',
+            imageUrl: foundArticle.image_url || '',
+            content: foundArticle.content || '',
+            date: foundArticle.created_at,
+            createdAt: foundArticle.created_at,
+            updatedAt: foundArticle.updated_at || foundArticle.created_at,
+            trendingHome: foundArticle.trending_home ?? false,
+            trendingEdmonton: foundArticle.trending_edmonton ?? false,
+            trendingCalgary: foundArticle.trending_calgary ?? false,
+            featuredHome: foundArticle.featured_home ?? false,
+            featuredEdmonton: foundArticle.featured_edmonton ?? false,
+            featuredCalgary: foundArticle.featured_calgary ?? false,
+          }
+          
+          // Add to cache for next time
+          if (articlesCache) {
+            articlesCache.push(article)
+            slugIndex = buildSlugIndex(articlesCache)
+          }
+          
+          return article
+        }
+      }
+    } catch (error) {
+      // Supabase failed, continue
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Supabase lookup failed:', error)
+      }
     }
   }
   
@@ -195,9 +252,9 @@ export async function checkEventSlug(slug: string): Promise<{ title: string; slu
  * 
  * Performance:
  * - Only fetches if content is missing/short
- * - Uses optimized Supabase query (content field only)
- * - Timeout protection (5 seconds)
- * - Falls back to optimized fallback file
+ * - Uses cached articles index (no file read)
+ * - Avoids Supabase queries (use fallback file)
+ * - Fast O(1) lookup
  */
 export async function ensureFullContent(
   article: Article,
@@ -213,51 +270,71 @@ export async function ensureFullContent(
     return article
   }
   
-  // Try to fetch full content from Supabase (content field only)
+  // PERFORMANCE: Use cached articles index instead of loading file again
   try {
-    const contentQuery = supabase
-      .from('articles')
-      .select('id, content')
-      .eq('id', article.id)
-      .single()
+    const { index } = await getArticlesWithIndex()
+    const normalizedSlug = slug.toLowerCase()
     
-    const queryPromise = contentQuery
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Query timeout')), 5000)
-    )
+    // Try to find article with content in cache
+    let foundArticle = index.get(normalizedSlug)
     
-    const { data, error } = await Promise.race([
-      queryPromise,
-      timeoutPromise
-    ]) as any
-    
-    if (!error && data?.content && 
-        typeof data.content === 'string' && 
-        data.content.trim().length > 0) {
-      return { ...article, content: data.content }
+    // If not found by slug, try by ID
+    if (!foundArticle && article.id) {
+      foundArticle = index.get(article.id.toLowerCase())
     }
-  } catch (error) {
-    // Content fetch failed, try fallback
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to fetch full content from Supabase:', error)
+    
+    // If still not found, search through cached articles
+    if (!foundArticle && articlesCache) {
+      const found = articlesCache.find((item: any) => 
+        item.id === article.id || 
+        createSlug(item.title).toLowerCase() === normalizedSlug
+      )
+      if (found) {
+        foundArticle = found
+      }
     }
-  }
-  
-  // Fallback to optimized fallback file
-  try {
-    const fallbackArticles = await loadOptimizedFallback()
-    const foundArticle = fallbackArticles.find((item: any) => 
-      item.id === article.id || createSlug(item.title).toLowerCase() === slug.toLowerCase()
-    )
     
     if (foundArticle?.content && 
         typeof foundArticle.content === 'string' && 
-        foundArticle.content.trim().length > 0) {
+        foundArticle.content.trim().length > 100) {
       return { ...article, content: foundArticle.content }
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to fetch content from fallback:', error)
+      console.error('Failed to fetch content from cache:', error)
+    }
+  }
+  
+  // PERFORMANCE: Skip Supabase in production (too slow)
+  // Only try in development if really needed
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const contentQuery = supabase
+        .from('articles')
+        .select('id, content')
+        .eq('id', article.id)
+        .single()
+      
+      const queryPromise = contentQuery
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 2000) // Reduced to 2s
+      )
+      
+      const { data, error } = await Promise.race([
+        queryPromise,
+        timeoutPromise
+      ]) as any
+      
+      if (!error && data?.content && 
+          typeof data.content === 'string' && 
+          data.content.trim().length > 0) {
+        return { ...article, content: data.content }
+      }
+    } catch (error) {
+      // Supabase failed, return article as-is
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to fetch full content from Supabase:', error)
+      }
     }
   }
   
@@ -272,7 +349,7 @@ export async function ensureFullContent(
  * @returns Array of related articles
  * 
  * Performance:
- * - Uses optimized fallback (faster than Supabase)
+ * - Uses cached articles (no file read)
  * - Minimal field selection (no content)
  * - Efficient filtering and sorting
  * - Limits results to reduce payload
@@ -287,8 +364,8 @@ export async function getRelatedArticles(
   limit: number = 6
 ): Promise<Article[]> {
   try {
-    // PERFORMANCE: Use optimized fallback (faster than Supabase)
-    const allArticles = await loadOptimizedFallback()
+    // PERFORMANCE: Use cached articles instead of loading file again
+    const { articles: allArticles } = await getArticlesWithIndex()
     
     if (allArticles.length === 0) {
       return []
