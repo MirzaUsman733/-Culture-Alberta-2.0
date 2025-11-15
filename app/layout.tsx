@@ -51,11 +51,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
+        {/* PERFORMANCE: Defer analytics to lazyOnload to improve initial page load */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-48EV1DX840"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -63,11 +64,12 @@ export default function RootLayout({
             gtag('config', 'G-48EV1DX840');
           `}
         </Script>
+        {/* PERFORMANCE: Defer AdSense to lazyOnload to improve initial page load */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6902227267422426"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
         <LoadingProvider>
           <MainNavigation />

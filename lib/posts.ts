@@ -35,9 +35,10 @@ export async function createPost(post: Omit<BlogPost, 'id' | 'created_at' | 'upd
 // Get all blog posts
 export async function getAllPosts() {
   if (!supabase) return []
+  // PERFORMANCE: Only fetch essential fields for listings
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -47,9 +48,10 @@ export async function getAllPosts() {
 // Get a single blog post by ID
 export async function getPostById(id: string) {
   if (!supabase) throw new Error('Supabase not configured')
+  // PERFORMANCE: Fetch all fields for single post (content needed)
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
     .eq('id', id)
     .single()
 
@@ -60,9 +62,10 @@ export async function getPostById(id: string) {
 // Get a single blog post by slug
 export async function getPostBySlug(slug: string) {
   if (!supabase) throw new Error('Supabase not configured')
+  // PERFORMANCE: Fetch all fields for single post (content needed)
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
     .eq('slug', slug)
     .single()
 
@@ -100,9 +103,10 @@ export async function deletePost(id: string) {
 // Get posts by category
 export async function getPostsByCategory(category: string) {
   if (!supabase) return []
+  // PERFORMANCE: Only fetch essential fields for listings
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
     .eq('category', category)
     .order('created_at', { ascending: false })
 
@@ -113,10 +117,11 @@ export async function getPostsByCategory(category: string) {
 // Search posts
 export async function searchPosts(query: string) {
   if (!supabase) return []
+  // PERFORMANCE: Only fetch essential fields for search results (no content)
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
-    .or(`title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%`)
+    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
+    .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
     .order('created_at', { ascending: false })
 
   if (error) throw error

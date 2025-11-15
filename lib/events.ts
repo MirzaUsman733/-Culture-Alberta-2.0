@@ -145,9 +145,10 @@ export async function getEventsByLocation(location: string): Promise<Event[]> {
       return []
     }
 
+    // PERFORMANCE: Only fetch essential fields (no unnecessary created_at, updated_at for listings)
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('id, title, excerpt, description, category, location, event_date, event_end_date, image_url, status, organizer, venue_address, website_url, price, currency')
       .eq('status', 'published')
       .ilike('location', `%${location}%`)
       .order('event_date', { ascending: true })
@@ -193,9 +194,10 @@ export async function getUpcomingEvents(limit: number = 10): Promise<Event[]> {
       return []
     }
 
+    // PERFORMANCE: Only fetch essential fields for listings
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('id, title, excerpt, description, category, location, event_date, event_end_date, image_url, status, organizer, venue_address, website_url, price, currency')
       .eq('status', 'published')
       .gte('event_date', now)
       .order('event_date', { ascending: true })
@@ -235,9 +237,10 @@ export async function getFeaturedEvents(): Promise<Event[]> {
       return []
     }
 
+    // PERFORMANCE: Only fetch essential fields for listings
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('id, title, excerpt, description, category, location, event_date, event_end_date, image_url, status, organizer, venue_address, website_url, price, currency')
       .eq('status', 'published')
       .eq('featured', true)
       .order('event_date', { ascending: true })
@@ -276,9 +279,10 @@ export async function getEventById(id: string): Promise<Event | null> {
       return null
     }
 
+    // PERFORMANCE: Fetch all fields for single event detail (needed for full display)
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('id, title, excerpt, description, category, location, event_date, event_end_date, image_url, status, organizer, organizer_contact, venue_address, website_url, price, currency, created_at, updated_at')
       .eq('id', id)
       .single()
 

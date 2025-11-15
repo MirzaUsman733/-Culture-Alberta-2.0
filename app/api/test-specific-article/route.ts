@@ -11,10 +11,10 @@ export async function GET() {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0ZG13cGJzbnZpYXNzZ3FmaHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0ODU5NjUsImV4cCI6MjA2OTA2MTk2NX0.pxAXREQJrXJFZEBB3s7iwfm3rV_C383EbWCwf6ayPQo'
     )
     
-    // Get the minimum wage article with full data
+    // PERFORMANCE: Fetch all fields for test (content needed for testing)
     const { data: article, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, excerpt, content, category, created_at')
       .ilike('title', '%minimum wage%')
       .limit(1)
     

@@ -45,13 +45,13 @@ export default async function ArticlesPage() {
   const allArticles = await getAllArticles()
   
   // PERFORMANCE: Remove content field for listings (not needed for article cards)
-  const articlesWithoutContent = allArticles.map(article => ({
-    ...article,
-    content: undefined
-  }))
+  const articlesWithoutContent = allArticles.map(article => {
+    const { content, ...articleWithoutContent } = article
+    return articleWithoutContent
+  })
   
   // PERFORMANCE: Sort once
-  const sortedArticles = sortArticlesByDate(articlesWithoutContent)
+  const sortedArticles = sortArticlesByDate(articlesWithoutContent as Article[])
   
   // Extract unique categories for sidebar
   const uniqueCategories = Array.from(

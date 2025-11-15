@@ -48,8 +48,7 @@ function convertEventToArticle(event: any): Article {
     featuredHome: event.featured_home ?? false,
     featuredEdmonton: event.featured_edmonton ?? false,
     featuredCalgary: event.featured_calgary ?? false,
-    type: 'event',
-    eventDate: event.event_date
+    type: 'event'
   }
 }
 
@@ -140,7 +139,21 @@ export async function getOptimizedHomepageData(): Promise<{
       'organizer'
     ].join(',')
     
-    // Try Supabase first with timeout
+    // PERFORMANCE: Use optimized fallback immediately in development, try Supabase in production
+    // This prevents slow database queries from blocking page loads
+    if (process.env.NODE_ENV === 'development') {
+      // In development, use fallback immediately for speed
+      const fallbackArticles = await loadOptimizedFallback()
+      const articles = fallbackArticles.filter((item: any) => item.type !== 'event')
+      const events = fallbackArticles.filter((item: any) => item.type === 'event').slice(0, 3)
+      
+      return {
+        posts: articles,
+        events: events
+      }
+    }
+    
+    // In production, try Supabase first with fast timeout
     try {
       const articlesQuery = supabase
         .from('articles')
@@ -157,8 +170,9 @@ export async function getOptimizedHomepageData(): Promise<{
         .limit(3)
       
       const queryPromise = Promise.all([articlesQuery, eventsQuery])
+      // PERFORMANCE: Reduced timeout to 2 seconds - fail fast and use optimized fallback
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 5000)
+        setTimeout(() => reject(new Error('Query timeout')), 2000)
       )
       
       const [articlesResult, eventsResult] = await Promise.race([
@@ -198,7 +212,8 @@ export async function getOptimizedHomepageData(): Promise<{
         }
       }
     } catch (supabaseError) {
-      if (process.env.NODE_ENV === 'development') {
+      // Log error in development mode
+      if (process.env.NODE_ENV !== 'production') {
         console.error('Supabase query failed, using fallback:', supabaseError)
       }
     }
@@ -213,7 +228,8 @@ export async function getOptimizedHomepageData(): Promise<{
       events: events
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    // Log error in development mode
+    if (process.env.NODE_ENV !== 'production') {
       console.error('Error loading homepage data:', error)
     }
     

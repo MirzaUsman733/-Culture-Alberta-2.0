@@ -32,9 +32,10 @@ export const optimizedSupabase: SupabaseClient = createClient(supabaseUrl, supab
 })
 
 // Optimized query function with better error handling
+// PERFORMANCE: Default select should be specific fields, not '*'
 export async function optimizedQuery<T>(
   table: string,
-  select: string = '*',
+  select: string = 'id, title, excerpt, category, location, created_at, image_url', // Default to essential fields only
   filters: Record<string, any> = {},
   orderBy: { column: string; ascending?: boolean } = { column: 'created_at', ascending: false },
   limit: number = 50

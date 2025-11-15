@@ -93,9 +93,10 @@ export async function getAllNewsletterSubscriptions(): Promise<NewsletterSubscri
   try {
     if (!supabase) return []
     
+    // PERFORMANCE: Only fetch essential fields for admin list
     const { data, error } = await supabase
       .from('newsletter_subscriptions')
-      .select('*')
+      .select('id, email, city, province, country, status, created_at')
       .order('created_at', { ascending: false })
 
     if (error) throw error

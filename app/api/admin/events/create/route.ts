@@ -60,10 +60,11 @@ export async function POST(request: Request) {
         }
       })
       
+      // PERFORMANCE: Only fetch essential fields for response
       const { data: supabaseResult, error: supabaseError } = await supabase
         .from('events')
         .insert(supabaseEventData)
-        .select()
+        .select('id, title, excerpt, description, category, location, event_date, event_end_date, image_url, status, organizer, venue_address, website_url, price, currency, created_at')
         .single()
       
       if (supabaseError) {

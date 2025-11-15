@@ -667,18 +667,23 @@ export async function getCityArticles(city: 'edmonton' | 'calgary'): Promise<Art
       featuredCalgary: article.featured_calgary || false
     }))
 
+    // DSA OPTIMIZATION: Single-pass filtering with pre-computed lowercase city
     // Additional client-side filtering to ensure we get the right city articles
+    const cityLower = city.toLowerCase()
     const filteredArticles = mappedArticles.filter((article: any) => {
-      const hasCityCategory = article.category?.toLowerCase().includes(city);
-      const hasCityLocation = article.location?.toLowerCase().includes(city);
-      const hasCityCategories = article.categories?.some((cat: string) => 
-        cat.toLowerCase().includes(city)
-      );
-      const hasCityTags = article.tags?.some((tag: string) => 
-        tag.toLowerCase().includes(city)
-      );
+      // Pre-compute lowercase strings once
+      const category = article.category?.toLowerCase() || ''
+      const location = article.location?.toLowerCase() || ''
+      const categories = article.categories || []
+      const tags = article.tags || []
       
-      return hasCityCategory || hasCityLocation || hasCityCategories || hasCityTags;
+      // Early returns for better performance
+      if (category.includes(cityLower)) return true
+      if (location.includes(cityLower)) return true
+      if (categories.some((cat: string) => cat.toLowerCase().includes(cityLower))) return true
+      if (tags.some((tag: string) => tag.toLowerCase().includes(cityLower))) return true
+      
+      return false
     });
 
     console.log(`Filtered ${city} articles:`, filteredArticles.length, 'out of', mappedArticles.length, 'total articles')
@@ -694,18 +699,23 @@ export async function getCityArticles(city: 'edmonton' | 'calgary'): Promise<Art
     console.log('Falling back to file system')
     const fileArticles = await fileArticlesModule ? await fileArticlesModule.getAllArticlesFromFile() : []
     
+    // DSA OPTIMIZATION: Single-pass filtering with pre-computed lowercase city
     // Filter file articles by city as well
+    const cityLower = city.toLowerCase()
     const filteredFileArticles = fileArticles.filter((article: any) => {
-      const hasCityCategory = article.category?.toLowerCase().includes(city);
-      const hasCityLocation = article.location?.toLowerCase().includes(city);
-      const hasCityCategories = article.categories?.some((cat: string) => 
-        cat.toLowerCase().includes(city)
-      );
-      const hasCityTags = article.tags?.some((tag: string) => 
-        tag.toLowerCase().includes(city)
-      );
+      // Pre-compute lowercase strings once
+      const category = article.category?.toLowerCase() || ''
+      const location = article.location?.toLowerCase() || ''
+      const categories = article.categories || []
+      const tags = article.tags || []
       
-      return hasCityCategory || hasCityLocation || hasCityCategories || hasCityTags;
+      // Early returns for better performance
+      if (category.includes(cityLower)) return true
+      if (location.includes(cityLower)) return true
+      if (categories.some((cat: string) => cat.toLowerCase().includes(cityLower))) return true
+      if (tags.some((tag: string) => tag.toLowerCase().includes(cityLower))) return true
+      
+      return false
     });
     
     console.log(`File system fallback: Found ${filteredFileArticles.length} ${city} articles out of ${fileArticles.length} total`)
@@ -1241,9 +1251,10 @@ export async function getArticleById(id: string): Promise<Article | null> {
       setTimeout(() => reject(new Error('Supabase timeout')), timeoutDuration)
     )
     
+    // PERFORMANCE: Fetch all fields for single article detail (content needed for display)
     const supabasePromise = supabase
       .from('articles')
-      .select('*')
+      .select('id, title, excerpt, content, category, categories, location, author, tags, type, status, created_at, updated_at, trending_home, trending_edmonton, trending_calgary, featured_home, featured_edmonton, featured_calgary, image_url, image')
       .eq('id', id)
       .limit(1)
 

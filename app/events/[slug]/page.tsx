@@ -162,7 +162,7 @@ export default async function EventDetailPage({
         <EventDetailContent
           event={event}
           latestArticles={allArticles.slice(0, 3) as Article[]}
-          moreEvents={allEvents.filter((e: any) => e.id !== event.id && (e.status === 'published' || !e.status)).slice(0, 3) as Event[]}
+          moreEvents={allEvents.filter((e: any) => e.id !== event.id && (e.status === 'published' || !e.status)).slice(0, 3) as unknown as Event[]}
           moreArticles={allArticles.slice(0, 6) as Article[]}
           slug={slug}
         />

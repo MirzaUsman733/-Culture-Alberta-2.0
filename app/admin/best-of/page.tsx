@@ -79,14 +79,29 @@ export default function BestOfAdminPage() {
     setIsLoading(false)
   }, [])
 
-  // Filter items based on search term, category, and location
+  // DSA OPTIMIZATION: Pre-compute filter values once to avoid repeated operations
+  // Filter items based on search term, category, and location - O(n) single pass
+  const searchTermLower = searchTerm.toLowerCase()
+  const categoryFilterLower = categoryFilter.toLowerCase()
+  const locationFilterLower = locationFilter.toLowerCase()
+  const isAllCategories = categoryFilter === "all"
+  const isAllLocations = locationFilter === "all"
+  
   const filteredItems = bestOfItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || item.category.toLowerCase() === categoryFilter.toLowerCase()
-    const matchesLocation =
-      locationFilter === "all" || item.location.toLowerCase().includes(locationFilter.toLowerCase())
-
-    return matchesSearch && matchesCategory && matchesLocation
+    // Early returns for better performance
+    if (!isAllCategories && item.category.toLowerCase() !== categoryFilterLower) {
+      return false
+    }
+    
+    if (!isAllLocations && !item.location.toLowerCase().includes(locationFilterLower)) {
+      return false
+    }
+    
+    if (searchTerm && !item.name.toLowerCase().includes(searchTermLower)) {
+      return false
+    }
+    
+    return true
   })
 
   // Calculate pagination
@@ -95,18 +110,28 @@ export default function BestOfAdminPage() {
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem)
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
 
-  // Get unique categories for filter dropdown
-  const categories = Array.from(new Set(bestOfItems.map((item) => item.category)))
-
-  // Get unique locations for filter dropdown
-  const locations = Array.from(
-    new Set(
-      bestOfItems.map((item) => {
-        const city = item.location.split(",")[0].trim()
-        return city
-      }),
-    ),
-  )
+  // DSA OPTIMIZATION: Single-pass extraction with Set for O(1) deduplication
+  // Get unique categories and locations in one pass - O(n) instead of O(2n)
+  const categorySet = new Set<string>()
+  const locationSet = new Set<string>()
+  
+  for (const item of bestOfItems) {
+    // Add category to set (automatic deduplication)
+    if (item.category) {
+      categorySet.add(item.category)
+    }
+    
+    // Extract city from location and add to set
+    if (item.location) {
+      const city = item.location.split(",")[0].trim()
+      if (city) {
+        locationSet.add(city)
+      }
+    }
+  }
+  
+  const categories = Array.from(categorySet)
+  const locations = Array.from(locationSet)
 
   const handleDeleteItem = (id: string) => {
     try {

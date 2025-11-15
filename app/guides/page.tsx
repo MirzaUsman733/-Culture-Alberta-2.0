@@ -40,20 +40,20 @@ export default async function GuidesPage() {
   const allArticles = await getAllArticles()
   
   // PERFORMANCE: Remove content field for listings (not needed for guide cards)
-  const articlesWithoutContent = allArticles.map(article => ({
-    ...article,
-    content: undefined
-  }))
+  const articlesWithoutContent = allArticles.map(article => {
+    const { content, ...articleWithoutContent } = article
+    return articleWithoutContent
+  })
   
   // Filter for guide articles
-  const guideArticles = articlesWithoutContent.filter((article: Article) => {
+  const guideArticles = articlesWithoutContent.filter((article: any) => {
     const type = (article.type || '').toLowerCase()
     const category = (article.category || '').toLowerCase()
     return type.includes('guide') || category.includes('guide')
   })
   
   // PERFORMANCE: Sort once
-  const sortedGuides = sortArticlesByDate(guideArticles)
+  const sortedGuides = sortArticlesByDate(guideArticles as Article[])
 
   return (
     <>

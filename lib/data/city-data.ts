@@ -43,22 +43,29 @@ export async function getCityPageData(city: 'edmonton' | 'calgary'): Promise<Cit
     // PERFORMANCE: Use optimized fallback (faster than Supabase)
     const allContent = await loadOptimizedFallback()
     
-    // Filter city articles (exclude events)
+    // DSA OPTIMIZATION: Single-pass filtering with pre-computed lowercase strings
+    // Pre-compute city lowercase once to avoid repeated toLowerCase() calls
+    const cityLower = city.toLowerCase()
+    
+    // Filter city articles (exclude events) - O(n) single pass
     const cityArticles = allContent.filter((article: any) => {
       if (article.type === 'event') return false
       
+      // DSA: Pre-compute lowercase strings once to avoid repeated operations
       const location = article.location?.toLowerCase() || ''
       const category = article.category?.toLowerCase() || ''
       const title = article.title?.toLowerCase() || ''
       const categories = article.categories || []
       const tags = article.tags || []
-      const cityLower = city.toLowerCase()
       
-      return location.includes(cityLower) || 
-             category.includes(cityLower) || 
-             title.includes(cityLower) ||
-             categories.some((cat: string) => cat.toLowerCase().includes(cityLower)) ||
-             tags.some((tag: string) => tag.toLowerCase().includes(cityLower))
+      // Early returns for better performance
+      if (location.includes(cityLower)) return true
+      if (category.includes(cityLower)) return true
+      if (title.includes(cityLower)) return true
+      if (categories.some((cat: string) => cat.toLowerCase().includes(cityLower))) return true
+      if (tags.some((tag: string) => tag.toLowerCase().includes(cityLower))) return true
+      
+      return false
     })
     
     // Remove content field for better performance
@@ -83,26 +90,28 @@ export async function getCityPageData(city: 'edmonton' | 'calgary'): Promise<Cit
       ? trendingWithFlag.slice(0, 4)
       : sortedArticles.slice(0, 4)
     
-    // Get upcoming events for the city
-    const cityEvents: Article[] = allContent
-      .filter((article: any) => {
-        // First check if it's an event
-        if (article.type !== 'event') return false
-        
-        // Then check if it's city-related
-        const location = article.location?.toLowerCase() || ''
-        const category = article.category?.toLowerCase() || ''
-        const title = article.title?.toLowerCase() || ''
-        const categories = article.categories || []
-        const tags = article.tags || []
-        const cityLower = city.toLowerCase()
-        
-        return location.includes(cityLower) || 
-               category.includes(cityLower) || 
-               title.includes(cityLower) ||
-               categories.some((cat: string) => cat.toLowerCase().includes(cityLower)) ||
-               tags.some((tag: string) => tag.toLowerCase().includes(cityLower))
-      })
+    // DSA OPTIMIZATION: Single-pass event filtering with pre-computed values
+    // Get upcoming events for the city - O(n) single pass
+    const cityEvents: Article[] = allContent.filter((article: any) => {
+      // Early return: First check if it's an event
+      if (article.type !== 'event') return false
+      
+      // DSA: Pre-compute lowercase strings once to avoid repeated operations
+      const location = article.location?.toLowerCase() || ''
+      const category = article.category?.toLowerCase() || ''
+      const title = article.title?.toLowerCase() || ''
+      const categories = article.categories || []
+      const tags = article.tags || []
+      
+      // Early returns for better performance
+      if (location.includes(cityLower)) return true
+      if (category.includes(cityLower)) return true
+      if (title.includes(cityLower)) return true
+      if (categories.some((cat: string) => cat.toLowerCase().includes(cityLower))) return true
+      if (tags.some((tag: string) => tag.toLowerCase().includes(cityLower))) return true
+      
+      return false
+    })
     
     // Filter for future events and sort by date
     const now = new Date()

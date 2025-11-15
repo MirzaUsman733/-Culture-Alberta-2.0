@@ -15,27 +15,27 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/edmonton" className="text-gray-600 hover:text-gray-900">Edmonton</Link></li>
-              <li><Link href="/calgary" className="text-gray-600 hover:text-gray-900">Calgary</Link></li>
-              <li><Link href="/events" className="text-gray-600 hover:text-gray-900">Events</Link></li>
-              <li><Link href="/food-drink" className="text-gray-600 hover:text-gray-900">Food & Drink</Link></li>
+              <li><Link href="/edmonton" prefetch={false} className="text-gray-600 hover:text-gray-900">Edmonton</Link></li>
+              <li><Link href="/calgary" prefetch={false} className="text-gray-600 hover:text-gray-900">Calgary</Link></li>
+              <li><Link href="/events" prefetch={false} className="text-gray-600 hover:text-gray-900">Events</Link></li>
+              <li><Link href="/food-drink" prefetch={false} className="text-gray-600 hover:text-gray-900">Food & Drink</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/about" className="text-gray-600 hover:text-gray-900">About Us</Link></li>
-              <li><Link href="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link></li>
-              <li><Link href="/partner" className="text-gray-600 hover:text-gray-900">Partner with Us</Link></li>
+              <li><Link href="/about" prefetch={false} className="text-gray-600 hover:text-gray-900">About Us</Link></li>
+              <li><Link href="/contact" prefetch={false} className="text-gray-600 hover:text-gray-900">Contact</Link></li>
+              <li><Link href="/partner" prefetch={false} className="text-gray-600 hover:text-gray-900">Partner with Us</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy-policy" className="text-gray-600 hover:text-gray-900">Privacy Policy</Link></li>
-              <li><Link href="/terms-of-service" className="text-gray-600 hover:text-gray-900">Terms of Service</Link></li>
+              <li><Link href="/privacy-policy" prefetch={false} className="text-gray-600 hover:text-gray-900">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-service" prefetch={false} className="text-gray-600 hover:text-gray-900">Terms of Service</Link></li>
             </ul>
           </div>
         </div>

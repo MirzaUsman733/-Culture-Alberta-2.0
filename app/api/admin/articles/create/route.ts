@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }])
-      .select()
+      .select('id, title, excerpt, content, category, categories, location, author, tags, type, status, created_at, updated_at, trending_home, trending_edmonton, trending_calgary, featured_home, featured_edmonton, featured_calgary, image_url, image')
       .single()
 
     if (error) {

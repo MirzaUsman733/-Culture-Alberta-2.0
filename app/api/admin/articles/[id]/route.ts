@@ -28,9 +28,10 @@ export async function GET(
     console.log('🔎 Admin GET article by ID:', articleId)
 
     const supabase = getSupabaseClient()
+    // PERFORMANCE: Fetch all fields for admin edit (content needed for editing)
     const { data, error } = await supabase
       .from('articles')
-      .select('*')
+      .select('id, title, excerpt, content, category, categories, location, author, tags, type, status, created_at, updated_at, trending_home, trending_edmonton, trending_calgary, featured_home, featured_edmonton, featured_calgary, image_url, image')
       .eq('id', articleId)
       .single()
 
@@ -99,7 +100,7 @@ export async function PUT(
         featured_calgary: articleData.featuredCalgary || false,
       })
       .eq('id', articleId)
-      .select()
+      .select('id, title, excerpt, content, category, categories, location, author, tags, type, status, created_at, updated_at, trending_home, trending_edmonton, trending_calgary, featured_home, featured_edmonton, featured_calgary, image_url, image')
       .single()
 
     if (error) {

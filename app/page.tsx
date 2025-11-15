@@ -22,9 +22,9 @@ import {
   getItemDate,
 } from '@/lib/utils/date'
 
-// PERFORMANCE: Use ISR with aggressive caching for instant loads
-// Revalidates every 30 seconds - faster updates while maintaining speed
-export const revalidate = 30
+// PERFORMANCE: Use ISR with optimized caching for instant loads
+// Revalidates every 60 seconds - better caching while still keeping content fresh
+export const revalidate = 60
 
 /**
  * Homepage Component
@@ -52,18 +52,74 @@ export default async function HomePage() {
   // PERFORMANCE: Sort once, filter multiple times (O(n log n) + O(n) operations)
   const sortedPosts = sortArticlesByDate(posts)
 
-  // PERFORMANCE: Filter in single pass using optimized utility functions
-  const featuredPost = sortedPosts.find(
-    post => post.featuredHome === true && post.type !== 'event'
-  ) || sortedPosts[0] || null
-
-  const trendingPosts = sortedPosts
-    .filter(post => post.type !== 'event' && post.trendingHome === true)
-    .slice(0, 5)
-
-  const edmontonPosts = filterArticlesByCity(sortedPosts, 'edmonton').slice(0, 3)
-  const calgaryPosts = filterArticlesByCity(sortedPosts, 'calgary').slice(0, 3)
-  const foodDrinkPosts = filterFoodDrinkArticles(sortedPosts).slice(0, 3)
+  // DSA OPTIMIZATION: Single-pass filtering to categorize all posts at once
+  // Instead of multiple filter passes (O(n) each), we do one pass (O(n) total)
+  let featuredPost: Article | null = null
+  const trendingPosts: Article[] = []
+  const edmontonPosts: Article[] = []
+  const calgaryPosts: Article[] = []
+  const foodDrinkPosts: Article[] = []
+  
+  // DSA: Pre-compute city strings once to avoid repeated toLowerCase() calls
+  const edmontonLower = 'edmonton'
+  const calgaryLower = 'calgary'
+  const foodPatterns = ['food', 'drink', 'food & drink']
+  
+  // Single pass through sortedPosts - O(n) instead of O(5n) with multiple filters
+  for (const post of sortedPosts) {
+    // Skip events for most sections
+    if (post.type === 'event') continue
+    
+    // Find featured post (first match)
+    if (!featuredPost && post.featuredHome === true) {
+      featuredPost = post
+    }
+    
+    // Collect trending posts
+    if (post.trendingHome === true && trendingPosts.length < 5) {
+      trendingPosts.push(post)
+    }
+    
+    // DSA: Pre-compute lowercase strings once per post
+    const location = post.location?.toLowerCase() || ''
+    const category = post.category?.toLowerCase() || ''
+    const categories = post.categories || []
+    
+    // Check Edmonton match - O(1) string operations
+    if (edmontonPosts.length < 3) {
+      if (location.includes(edmontonLower) || 
+          category.includes(edmontonLower) ||
+          categories.some(cat => cat.toLowerCase().includes(edmontonLower))) {
+        edmontonPosts.push(post)
+      }
+    }
+    
+    // Check Calgary match - O(1) string operations
+    if (calgaryPosts.length < 3) {
+      if (location.includes(calgaryLower) || 
+          category.includes(calgaryLower) ||
+          categories.some(cat => cat.toLowerCase().includes(calgaryLower))) {
+        calgaryPosts.push(post)
+      }
+    }
+    
+    // Check food & drink - O(1) pattern matching
+    if (foodDrinkPosts.length < 3) {
+      const hasFoodCategory = foodPatterns.some(pattern => category.includes(pattern))
+      const hasFoodInCategories = categories.some(cat => {
+        const catLower = cat.toLowerCase()
+        return foodPatterns.some(pattern => catLower.includes(pattern))
+      })
+      if (hasFoodCategory || hasFoodInCategories) {
+        foodDrinkPosts.push(post)
+      }
+    }
+  }
+  
+  // Fallback to first post if no featured post found
+  if (!featuredPost && sortedPosts.length > 0) {
+    featuredPost = sortedPosts[0]
+  }
 
   return (
     <>

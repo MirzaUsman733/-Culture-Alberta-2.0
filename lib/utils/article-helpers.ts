@@ -101,7 +101,13 @@ export function deduplicateArticles(articles: Article[]): Article[] {
  * @param city - City name ("edmonton" or "calgary")
  * @returns Filtered array of articles
  * 
- * Performance: O(n) - single pass filter
+ * Performance: O(n) - single pass filter with optimized string operations
+ * 
+ * DSA Optimization:
+ * - Pre-computes lowercase city name once
+ * - Uses early returns for better performance
+ * - Minimizes repeated toLowerCase() calls
+ * - Single pass through articles array
  * 
  * Checks multiple fields for city match:
  * - category field
@@ -113,29 +119,36 @@ export function filterArticlesByCity(
   articles: Article[], 
   city: 'edmonton' | 'calgary'
 ): Article[] {
+  // DSA: Pre-compute lowercase once instead of calling toLowerCase() multiple times
   const cityLower = city.toLowerCase()
   
   return articles.filter(article => {
-    // Exclude events from city sections
+    // Early return: Exclude events from city sections
     if (article.type === 'event') return false
     
-    // Check category field
-    const hasCityCategory = article.category?.toLowerCase().includes(cityLower)
+    // DSA: Pre-compute lowercase strings once to avoid repeated operations
+    const category = article.category?.toLowerCase() || ''
+    const location = article.location?.toLowerCase() || ''
+    const categories = article.categories || []
+    const tags = article.tags || []
     
-    // Check categories array
-    const hasCityInCategories = article.categories?.some((cat: string) => 
-      cat.toLowerCase().includes(cityLower)
-    )
+    // Check category field - O(1) string operation
+    if (category.includes(cityLower)) return true
     
-    // Check location field
-    const hasCityLocation = article.location?.toLowerCase().includes(cityLower)
+    // Check location field - O(1) string operation
+    if (location.includes(cityLower)) return true
     
-    // Check tags array
-    const hasCityTags = article.tags?.some((tag: string) => 
-      tag.toLowerCase().includes(cityLower)
-    )
+    // Check categories array - O(k) where k is number of categories
+    if (categories.some((cat: string) => cat.toLowerCase().includes(cityLower))) {
+      return true
+    }
     
-    return hasCityCategory || hasCityInCategories || hasCityLocation || hasCityTags
+    // Check tags array - O(t) where t is number of tags
+    if (tags.some((tag: string) => tag.toLowerCase().includes(cityLower))) {
+      return true
+    }
+    
+    return false
   })
 }
 
@@ -145,7 +158,12 @@ export function filterArticlesByCity(
  * @param articles - Array of articles
  * @returns Filtered array of food & drink articles
  * 
- * Performance: O(n) - single pass filter
+ * Performance: O(n) - single pass filter with O(1) keyword lookup
+ * 
+ * DSA Optimization:
+ * - Uses Set for O(1) keyword lookup instead of array.some() which is O(m)
+ * - Pre-computes lowercase strings to avoid repeated toLowerCase() calls
+ * - Single pass through articles array
  * 
  * Checks:
  * - Category field for "food", "drink", "food & drink"
@@ -153,11 +171,15 @@ export function filterArticlesByCity(
  * - Title for food-related keywords
  */
 export function filterFoodDrinkArticles(articles: Article[]): Article[] {
-  const foodKeywords = [
+  // DSA: Use Set for O(1) lookup instead of array.some() which is O(n)
+  const foodKeywords = new Set([
     'restaurant', 'sushi', 'food', 'romantic', 'dining', 'cafe', 
     'bar', 'drink', 'coffee', 'bite', 'cuisine', 'chef', 
     'menu', 'meal', 'taste', 'flavor', 'cook', 'recipe'
-  ]
+  ])
+  
+  // Pre-compute food category patterns for faster matching
+  const foodPatterns = ['food & drink', 'food', 'drink']
   
   return articles.filter(article => {
     // Exclude events
@@ -167,21 +189,19 @@ export function filterFoodDrinkArticles(articles: Article[]): Article[] {
     const categories = article.categories || []
     const title = article.title?.toLowerCase() || ''
     
-    // Check category field
-    const hasFoodCategory = category.includes('food & drink') || 
-                           category.includes('food') || 
-                           category.includes('drink')
+    // Check category field - O(1) pattern matching
+    const hasFoodCategory = foodPatterns.some(pattern => category.includes(pattern))
     
-    // Check categories array
+    // Check categories array - O(k) where k is number of categories
     const hasFoodInCategories = categories.some((cat: string) => {
       const catLower = cat.toLowerCase()
-      return catLower.includes('food & drink') ||
-             catLower.includes('food') ||
-             catLower.includes('drink')
+      return foodPatterns.some(pattern => catLower.includes(pattern))
     })
     
-    // Check title for food keywords
-    const hasFoodInTitle = foodKeywords.some(keyword => title.includes(keyword))
+    // DSA: Check title for food keywords using Set for O(1) lookup
+    // Split title into words and check each word against Set
+    const titleWords = title.split(/\s+/)
+    const hasFoodInTitle = titleWords.some(word => foodKeywords.has(word))
     
     return hasFoodCategory || hasFoodInCategories || hasFoodInTitle
   })

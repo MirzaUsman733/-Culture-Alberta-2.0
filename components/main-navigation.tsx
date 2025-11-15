@@ -34,6 +34,7 @@ export function MainNavigation() {
         <nav className="hidden md:flex items-center justify-center gap-8">
           <Link
             href="/edmonton"
+            prefetch={false}
             className={`text-sm font-medium transition-colors ${
               isEdmonton 
                 ? "text-blue-600 hover:text-blue-700" 
@@ -44,6 +45,7 @@ export function MainNavigation() {
           </Link>
           <Link
             href="/calgary"
+            prefetch={false}
             className={`text-sm font-medium transition-colors ${
               isCalgary 
                 ? "text-red-600 hover:text-red-700" 
@@ -52,22 +54,22 @@ export function MainNavigation() {
           >
             Calgary
           </Link>
-          <Link href="/food-drink" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/food-drink" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Food & Drink
           </Link>
-          <Link href="/events" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/events" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Events
           </Link>
-          <Link href="/culture" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/culture" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Culture
           </Link>
-          <Link href="/best-of" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/best-of" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Best of Alberta
           </Link>
-          <Link href="/partner" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/partner" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Partner with Us
           </Link>
-          <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/contact" prefetch={false} className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Contact
           </Link>
         </nav>

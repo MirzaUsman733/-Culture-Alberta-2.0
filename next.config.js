@@ -29,6 +29,9 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   
+  // PERFORMANCE: External packages for server components (moved from experimental)
+  serverExternalPackages: ['@supabase/supabase-js'],
+  
   // Production-specific optimizations
   ...(process.env.NODE_ENV === 'production' && {
     experimental: {
@@ -39,8 +42,6 @@ const nextConfig = {
       ], // Tree-shake unused icons
       staticGenerationRetryCount: 3, // Retry failed static generation
       memoryBasedWorkersCount: true, // Optimize worker allocation
-      // PERFORMANCE: Enable edge runtime for faster responses
-      serverComponentsExternalPackages: ['@supabase/supabase-js'],
     },
   }),
   

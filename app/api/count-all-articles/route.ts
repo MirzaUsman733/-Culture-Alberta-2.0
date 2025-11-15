@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Get total count
+    // PERFORMANCE: Use count only (no data fetched)
     const { count: totalCount, error: totalError } = await supabase
       .from('articles')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true });
     
     if (totalError) {
       return NextResponse.json({ error: totalError.message }, { status: 500 });

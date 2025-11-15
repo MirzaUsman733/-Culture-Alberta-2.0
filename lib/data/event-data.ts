@@ -171,7 +171,7 @@ export async function getEventDetailPageData(eventId: string): Promise<EventDeta
       .slice(0, 3) as (Event | Article)[]
     
     return {
-      event: currentEvent as Event,
+      event: currentEvent as unknown as Event,
       latestArticles,
       moreEvents,
       moreArticles,
