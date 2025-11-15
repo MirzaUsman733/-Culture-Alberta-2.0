@@ -1,40 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, Upload } from "lucide-react"
+import { ArrowLeft, Save, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 // Removed direct import - using API instead
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { RichTextEditor } from "@/app/admin/components/rich-text-editor"
-import { useToast } from "@/hooks/use-toast"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { RichTextEditor } from "@/app/admin/components/rich-text-editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewPostPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [readTime, setReadTime] = useState("5")
-  const [excerpt, setExcerpt] = useState("")
-  const [content, setContent] = useState("")
-  const [tags, setTags] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [readTime, setReadTime] = useState("5");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
     toast({
       title: "Image selected",
-      description: "The image has been selected and will be saved with your post.",
-    })
-  }
+      description:
+        "The image has been selected and will be saved with your post.",
+    });
+  };
 
   const handleSave = async () => {
     if (!title) {
@@ -42,8 +49,8 @@ export default function NewPostPage() {
         title: "Missing title",
         description: "Please enter a title for your post.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!category) {
@@ -51,18 +58,18 @@ export default function NewPostPage() {
         title: "Missing category",
         description: "Please select a category for your post.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Create the article using the admin API
-      const response = await fetch('/api/admin/articles/create', {
-        method: 'POST',
+      const response = await fetch("/api/admin/articles/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
@@ -73,7 +80,7 @@ export default function NewPostPage() {
           content,
           imageUrl,
           author: "Admin",
-          tags: tags.split(',').map(tag => tag.trim()),
+          tags: tags.split(",").map((tag) => tag.trim()),
           type: "article",
           status: "published",
           // Add trending flags (default to false)
@@ -83,34 +90,34 @@ export default function NewPostPage() {
           // Add featured article flags (default to false)
           featuredHome: false,
           featuredEdmonton: false,
-          featuredCalgary: false
-        })
-      })
+          featuredCalgary: false,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to create article')
+        throw new Error("Failed to create article");
       }
 
-      const newPost = await response.json()
+      const newPost = await response.json();
 
       toast({
         title: "Post created",
         description: "Your post has been created successfully.",
-      })
+      });
 
       // Redirect back to admin articles list to see the new article
-      router.push('/admin/articles')
+      router.push("/admin/articles");
     } catch (error) {
-      console.error("Error creating post:", error)
+      console.error("Error creating post:", error);
       toast({
         title: "Error creating post",
         description: "There was a problem creating your post.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -253,5 +260,5 @@ export default function NewPostPage() {
         />
       )}
     </div>
-  )
+  );
 }

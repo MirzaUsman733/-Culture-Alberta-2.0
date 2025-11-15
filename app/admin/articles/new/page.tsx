@@ -1,64 +1,64 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, Upload } from "lucide-react"
-import { createSlug } from "@/lib/utils/slug"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { RichTextEditor } from "@/app/admin/components/rich-text-editor"
-import { useToast } from "@/hooks/use-toast"
-import { MAIN_CATEGORIES } from "@/lib/data"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { RichTextEditor } from "@/app/admin/components/rich-text-editor";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { MAIN_CATEGORIES } from "@/lib/data";
+import { createSlug } from "@/lib/utils/slug";
+import { ArrowLeft, Save, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function NewArticlePage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [categories, setCategories] = useState<string[]>([])
-  const [location, setLocation] = useState("")
-  const [excerpt, setExcerpt] = useState("")
-  const [content, setContent] = useState("")
-  const [author, setAuthor] = useState("")
-  const [tags, setTags] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  
+  const router = useRouter();
+  const { toast } = useToast();
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [location, setLocation] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [author, setAuthor] = useState("");
+  const [tags, setTags] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   // Trending selection options
-  const [trendingHome, setTrendingHome] = useState(false)
-  const [trendingEdmonton, setTrendingEdmonton] = useState(false)
-  const [trendingCalgary, setTrendingCalgary] = useState(false)
+  const [trendingHome, setTrendingHome] = useState(false);
+  const [trendingEdmonton, setTrendingEdmonton] = useState(false);
+  const [trendingCalgary, setTrendingCalgary] = useState(false);
 
   // Featured article options
-  const [featuredHome, setFeaturedHome] = useState(false)
-  const [featuredEdmonton, setFeaturedEdmonton] = useState(false)
-  const [featuredCalgary, setFeaturedCalgary] = useState(false)
+  const [featuredHome, setFeaturedHome] = useState(false);
+  const [featuredEdmonton, setFeaturedEdmonton] = useState(false);
+  const [featuredCalgary, setFeaturedCalgary] = useState(false);
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
     toast({
       title: "Image selected",
-      description: "The image has been selected and will be saved with your article.",
-    })
-  }
+      description:
+        "The image has been selected and will be saved with your article.",
+    });
+  };
 
   const handleCategoryToggle = (selectedCategory: string) => {
-    setCategories(prev => {
+    setCategories((prev) => {
       if (prev.includes(selectedCategory)) {
-        return prev.filter(cat => cat !== selectedCategory)
+        return prev.filter((cat) => cat !== selectedCategory);
       } else {
-        return [...prev, selectedCategory]
+        return [...prev, selectedCategory];
       }
-    })
-  }
+    });
+  };
 
   const handleSave = async () => {
     if (!title) {
@@ -66,8 +66,8 @@ export default function NewArticlePage() {
         title: "Missing title",
         description: "Please enter a title for your article.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!category && categories.length === 0) {
@@ -75,38 +75,40 @@ export default function NewArticlePage() {
         title: "Missing category",
         description: "Please select at least one category for your article.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    if (!content || content.trim() === '') {
+    if (!content || content.trim() === "") {
       toast({
         title: "Missing content",
-        description: "Please add content to your article. Articles without content will show 'Content coming soon...' to visitors.",
+        description:
+          "Please add content to your article. Articles without content will show 'Content coming soon...' to visitors.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Create the article using the admin API
-      const response = await fetch('/api/admin/articles/create', {
-        method: 'POST',
+      const response = await fetch("/api/admin/articles/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
           category: category || categories[0] || "General",
-          categories: categories.length > 0 ? categories : [category || "General"],
+          categories:
+            categories.length > 0 ? categories : [category || "General"],
           location: location || "Alberta",
           excerpt,
           content,
           imageUrl: imageUrl,
           author: author || "Admin",
-          tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+          tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
           type: "article",
           status: "published",
           // Add trending flags
@@ -116,50 +118,61 @@ export default function NewArticlePage() {
           // Add featured article flags
           featuredHome,
           featuredEdmonton,
-          featuredCalgary
-        })
-      })
+          featuredCalgary,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to create article')
+        throw new Error("Failed to create article");
       }
 
-      const newArticle = await response.json()
+      const newArticle = await response.json();
 
       toast({
         title: "Article created",
         description: "Your article has been created successfully.",
-      })
+      });
 
       // Trigger revalidation for article pages
       try {
-        const articleSlug = createSlug(title)
-        
-        await fetch('/api/revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const articleSlug = createSlug(title);
+
+        await fetch("/api/revalidate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            paths: ['/', `/articles/${articleSlug}`, '/edmonton', '/calgary', '/culture', '/food-drink', '/events']
-          })
-        })
-        console.log('✅ Triggered revalidation for new article')
+            paths: [
+              "/",
+              `/articles/${articleSlug}`,
+              "/edmonton",
+              "/calgary",
+              "/culture",
+              "/food-drink",
+              "/events",
+            ],
+          }),
+        });
+        console.log("✅ Triggered revalidation for new article");
       } catch (revalidateError) {
-        console.log('⚠️ Revalidation failed, but article was created:', revalidateError)
+        console.log(
+          "⚠️ Revalidation failed, but article was created:",
+          revalidateError
+        );
       }
 
       // Redirect to the articles list
-      router.push("/admin/articles")
+      router.push("/admin/articles");
     } catch (error) {
-      console.error("Error creating article:", error)
+      console.error("Error creating article:", error);
       toast({
         title: "Error creating article",
         description: "There was a problem creating your article.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -173,7 +186,9 @@ export default function NewArticlePage() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold">Create New Article</h1>
-            <p className="text-gray-500 mt-1">Add a new article to your website</p>
+            <p className="text-gray-500 mt-1">
+              Add a new article to your website
+            </p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
@@ -204,7 +219,10 @@ export default function NewArticlePage() {
                     checked={categories.includes(cat)}
                     onCheckedChange={() => handleCategoryToggle(cat)}
                   />
-                  <Label htmlFor={cat} className="text-sm font-normal cursor-pointer">
+                  <Label
+                    htmlFor={cat}
+                    className="text-sm font-normal cursor-pointer"
+                  >
                     {cat}
                   </Label>
                 </div>
@@ -246,7 +264,8 @@ export default function NewArticlePage() {
               placeholder="neighborhood, edmonton, arts, shopping (comma separated)"
             />
             <p className="text-sm text-gray-500 mt-1">
-              Separate tags with commas. For neighborhood articles, include "neighborhood" as a tag.
+              Separate tags with commas. For neighborhood articles, include
+              "neighborhood" as a tag.
             </p>
           </div>
         </div>
@@ -300,12 +319,14 @@ export default function NewArticlePage() {
       {/* Trending Selection Section */}
       <div className="border rounded-lg p-6 bg-gray-50">
         <h3 className="text-lg font-semibold mb-4">Trending Options</h3>
-        <p className="text-sm text-gray-600 mb-4">Select where this article should appear in trending sections:</p>
-        
+        <p className="text-sm text-gray-600 mb-4">
+          Select where this article should appear in trending sections:
+        </p>
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="trending-home" 
+            <Checkbox
+              id="trending-home"
               checked={trendingHome}
               onCheckedChange={(checked) => setTrendingHome(checked as boolean)}
             />
@@ -313,23 +334,27 @@ export default function NewArticlePage() {
               Show in Home Page Trending
             </Label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="trending-edmonton" 
+            <Checkbox
+              id="trending-edmonton"
               checked={trendingEdmonton}
-              onCheckedChange={(checked) => setTrendingEdmonton(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setTrendingEdmonton(checked as boolean)
+              }
             />
             <Label htmlFor="trending-edmonton" className="text-sm font-medium">
               Show in Edmonton Trending
             </Label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="trending-calgary" 
+            <Checkbox
+              id="trending-calgary"
               checked={trendingCalgary}
-              onCheckedChange={(checked) => setTrendingCalgary(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setTrendingCalgary(checked as boolean)
+              }
             />
             <Label htmlFor="trending-calgary" className="text-sm font-medium">
               Show in Calgary Trending
@@ -341,12 +366,14 @@ export default function NewArticlePage() {
       {/* Featured Article Options Section */}
       <div className="border rounded-lg p-6 bg-blue-50">
         <h3 className="text-lg font-semibold mb-4">Featured Article Options</h3>
-        <p className="text-sm text-gray-600 mb-4">Select where this article should appear as the featured article:</p>
-        
+        <p className="text-sm text-gray-600 mb-4">
+          Select where this article should appear as the featured article:
+        </p>
+
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="featured-home" 
+            <Checkbox
+              id="featured-home"
               checked={featuredHome}
               onCheckedChange={(checked) => setFeaturedHome(checked as boolean)}
             />
@@ -354,23 +381,27 @@ export default function NewArticlePage() {
               Show as Home Page Featured Article
             </Label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="featured-edmonton" 
+            <Checkbox
+              id="featured-edmonton"
               checked={featuredEdmonton}
-              onCheckedChange={(checked) => setFeaturedEdmonton(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setFeaturedEdmonton(checked as boolean)
+              }
             />
             <Label htmlFor="featured-edmonton" className="text-sm font-medium">
               Show as Edmonton Page Featured Article
             </Label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="featured-calgary" 
+            <Checkbox
+              id="featured-calgary"
               checked={featuredCalgary}
-              onCheckedChange={(checked) => setFeaturedCalgary(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setFeaturedCalgary(checked as boolean)
+              }
             />
             <Label htmlFor="featured-calgary" className="text-sm font-medium">
               Show as Calgary Page Featured Article
@@ -383,10 +414,18 @@ export default function NewArticlePage() {
         <Label htmlFor="content">Content</Label>
         <div className="mb-2">
           <p className="text-sm text-gray-600">
-            💡 <strong>Tip:</strong> You can add images anywhere in your content using the image button in the toolbar or markdown syntax: <code className="bg-gray-100 px-1 rounded">![alt text](image-url)</code>
+            💡 <strong>Tip:</strong> You can add images anywhere in your content
+            using the image button in the toolbar or markdown syntax:{" "}
+            <code className="bg-gray-100 px-1 rounded">
+              ![alt text](image-url)
+            </code>
           </p>
           <p className="text-sm text-gray-500">
-            Example: <code className="bg-gray-100 px-1 rounded">![Beautiful Edmonton skyline](https://example.com/edmonton-skyline.jpg)</code>
+            Example:{" "}
+            <code className="bg-gray-100 px-1 rounded">
+              ![Beautiful Edmonton
+              skyline](https://example.com/edmonton-skyline.jpg)
+            </code>
           </p>
         </div>
         <RichTextEditor
@@ -397,11 +436,11 @@ export default function NewArticlePage() {
       </div>
 
       {showImageUploader && (
-        <ImageUploader 
-          onSelect={handleImageSelect} 
-          onClose={() => setShowImageUploader(false)} 
+        <ImageUploader
+          onSelect={handleImageSelect}
+          onClose={() => setShowImageUploader(false)}
         />
       )}
     </div>
-  )
+  );
 }

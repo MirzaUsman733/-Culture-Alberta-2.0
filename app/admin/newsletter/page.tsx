@@ -1,39 +1,50 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getAllNewsletterSubscriptions, getNewsletterStats } from "@/lib/newsletter"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Mail, Users, MapPin, Calendar } from "lucide-react"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  getAllNewsletterSubscriptions,
+  getNewsletterStats,
+} from "@/lib/newsletter";
+import { ArrowLeft, Calendar, Mail, MapPin, Users } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface NewsletterSubscription {
-  id?: string
-  email: string
-  city: string
-  province?: string
-  country?: string
-  created_at?: string
-  status?: 'active' | 'unsubscribed'
+  id?: string;
+  email: string;
+  city: string;
+  province?: string;
+  country?: string;
+  created_at?: string;
+  status?: "active" | "unsubscribed";
 }
 
 export default function NewsletterAdmin() {
-  const router = useRouter()
-  const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>([])
-  const [stats, setStats] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter();
+  const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>(
+    []
+  );
+  const [stats, setStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Check authentication using localStorage (same as admin layout)
-    const adminAuthenticated = localStorage.getItem("admin_authenticated")
-    setIsAuthenticated(adminAuthenticated === "true")
+    const adminAuthenticated = localStorage.getItem("admin_authenticated");
+    setIsAuthenticated(adminAuthenticated === "true");
 
     if (!adminAuthenticated) {
-      router.push("/admin/login")
-      return
+      router.push("/admin/login");
+      return;
     }
 
     // Load newsletter data
@@ -41,56 +52,61 @@ export default function NewsletterAdmin() {
       try {
         const [subscriptionsData, statsData] = await Promise.all([
           getAllNewsletterSubscriptions(),
-          getNewsletterStats()
-        ])
-        
-        setSubscriptions(subscriptionsData)
-        setStats(statsData)
-      } catch (error) {
-        console.error("Error loading newsletter data:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+          getNewsletterStats(),
+        ]);
 
-    loadNewsletterData()
-  }, [router])
+        setSubscriptions(subscriptionsData);
+        setStats(statsData);
+      } catch (error) {
+        console.error("Error loading newsletter data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNewsletterData();
+  }, [router]);
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return null // Router will redirect to login
+    return null; // Router will redirect to login
   }
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch {
-      return 'Invalid date'
+      return "Invalid date";
     }
-  }
+  };
 
   const getCityLabel = (city: string) => {
     switch (city) {
-      case 'calgary': return 'Calgary'
-      case 'edmonton': return 'Edmonton'
-      case 'other-alberta': return 'Other Alberta'
-      case 'outside-alberta': return 'Outside Alberta'
-      default: return city
+      case "calgary":
+        return "Calgary";
+      case "edmonton":
+        return "Edmonton";
+      case "other-alberta":
+        return "Other Alberta";
+      case "outside-alberta":
+        return "Outside Alberta";
+      default:
+        return city;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +121,9 @@ export default function NewsletterAdmin() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Newsletter Subscriptions</h1>
-              <p className="text-muted-foreground">Manage your newsletter subscribers</p>
+              <p className="text-muted-foreground">
+                Manage your newsletter subscribers
+              </p>
             </div>
           </div>
         </div>
@@ -134,8 +152,12 @@ export default function NewsletterAdmin() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-                <p className="text-xs text-muted-foreground mt-1">Currently subscribed</p>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.active}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Currently subscribed
+                </p>
               </CardContent>
             </Card>
 
@@ -147,8 +169,12 @@ export default function NewsletterAdmin() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats.byCity.calgary}</div>
-                <p className="text-xs text-muted-foreground mt-1">Active subscribers</p>
+                <div className="text-2xl font-bold text-red-600">
+                  {stats.byCity.calgary}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Active subscribers
+                </p>
               </CardContent>
             </Card>
 
@@ -160,8 +186,12 @@ export default function NewsletterAdmin() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{stats.byCity.edmonton}</div>
-                <p className="text-xs text-muted-foreground mt-1">Active subscribers</p>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.byCity.edmonton}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Active subscribers
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -181,27 +211,44 @@ export default function NewsletterAdmin() {
                 <>
                   {/* Copyable Data Section */}
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-medium mb-3">Copyable Data (Email | City)</h3>
+                    <h3 className="font-medium mb-3">
+                      Copyable Data (Email | City)
+                    </h3>
                     <div className="space-y-2">
                       {subscriptions
-                        .filter(sub => sub.status === 'active')
+                        .filter((sub) => sub.status === "active")
                         .map((subscription) => (
-                          <div key={subscription.id} className="font-mono text-sm bg-white p-2 rounded border">
-                            {subscription.email} | {getCityLabel(subscription.city)}
+                          <div
+                            key={subscription.id}
+                            className="font-mono text-sm bg-white p-2 rounded border"
+                          >
+                            {subscription.email} |{" "}
+                            {getCityLabel(subscription.city)}
                           </div>
                         ))}
                     </div>
                   </div>
-                  
+
                   {/* Detailed List */}
                   <div className="space-y-3">
                     {subscriptions.map((subscription) => (
-                      <div key={subscription.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div
+                        key={subscription.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
                         <div className="flex items-center gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium">{subscription.email}</span>
-                              <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
+                              <span className="font-medium">
+                                {subscription.email}
+                              </span>
+                              <Badge
+                                variant={
+                                  subscription.status === "active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
                                 {subscription.status}
                               </Badge>
                             </div>
@@ -212,7 +259,9 @@ export default function NewsletterAdmin() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {subscription.created_at ? formatDate(subscription.created_at) : 'Unknown date'}
+                                {subscription.created_at
+                                  ? formatDate(subscription.created_at)
+                                  : "Unknown date"}
                               </span>
                             </div>
                           </div>
@@ -225,7 +274,9 @@ export default function NewsletterAdmin() {
                 <div className="text-center text-muted-foreground py-8">
                   <Mail className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                   <p>No newsletter subscriptions yet</p>
-                  <p className="text-sm">Subscriptions will appear here once users sign up</p>
+                  <p className="text-sm">
+                    Subscriptions will appear here once users sign up
+                  </p>
                 </div>
               )}
             </div>
@@ -233,5 +284,5 @@ export default function NewsletterAdmin() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

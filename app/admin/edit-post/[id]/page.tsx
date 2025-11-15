@@ -1,110 +1,120 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter, useParams } from "next/navigation"
-import { ArrowLeft, Save, Upload } from "lucide-react"
+import { ArrowLeft, Save, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 // Removed direct import - using API instead
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { RichTextEditor } from "@/app/admin/components/rich-text-editor"
-import { useToast } from "@/hooks/use-toast"
-import { use } from "react"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { RichTextEditor } from "@/app/admin/components/rich-text-editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditPostPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default function EditPostPage({ params }: EditPostPageProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [postId, setPostId] = useState<string>("")
-  
+  const router = useRouter();
+  const { toast } = useToast();
+  const [postId, setPostId] = useState<string>("");
+
   // Handle async params
   useEffect(() => {
-    params.then(({ id }) => setPostId(id))
-  }, [params])
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [readTime, setReadTime] = useState("5")
-  const [excerpt, setExcerpt] = useState("")
-  const [content, setContent] = useState("")
-  const [tags, setTags] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+    params.then(({ id }) => setPostId(id));
+  }, [params]);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [readTime, setReadTime] = useState("5");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load the post data when the component mounts
   useEffect(() => {
     async function loadPost() {
-      if (!postId) return // Wait for postId to be set
-      
+      if (!postId) return; // Wait for postId to be set
+
       try {
-        console.log('Loading post for edit:', postId)
+        console.log("Loading post for edit:", postId);
         // Use API route instead of direct function call for client-side compatibility
         // Add timestamp to bypass cache and ensure fresh data
-        const response = await fetch(`/api/articles?id=${postId}&t=${Date.now()}`)
+        const response = await fetch(
+          `/api/articles?id=${postId}&t=${Date.now()}`
+        );
         if (!response.ok) {
-          throw new Error(`Failed to fetch article: ${response.status}`)
+          throw new Error(`Failed to fetch article: ${response.status}`);
         }
-        
-        const post = await response.json()
-        console.log('Post loaded for edit:', post)
-        console.log('Post fields:', {
+
+        const post = await response.json();
+        console.log("Post loaded for edit:", post);
+        console.log("Post fields:", {
           title: post.title,
           category: post.category,
           readTime: post.readTime,
           excerpt: post.excerpt,
-          content: post.content ? 'Content present' : 'No content',
+          content: post.content ? "Content present" : "No content",
           tags: post.tags,
-          imageUrl: post.imageUrl
-        })
-        
+          imageUrl: post.imageUrl,
+        });
+
         if (!post) {
           toast({
             title: "Post not found",
             description: "The post you're trying to edit could not be found.",
             variant: "destructive",
-          })
-          setIsLoading(false)
-          return
+          });
+          setIsLoading(false);
+          return;
         }
-        
-        setTitle(post.title || "")
-        setCategory(post.category?.toLowerCase() || "")
-        setReadTime(post.readTime || "5")
-        setExcerpt(post.excerpt || "")
-        setContent(post.content || "")
-        setTags(Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ""))
-        setImageUrl(post.imageUrl || "")
-        setIsLoading(false)
+
+        setTitle(post.title || "");
+        setCategory(post.category?.toLowerCase() || "");
+        setReadTime(post.readTime || "5");
+        setExcerpt(post.excerpt || "");
+        setContent(post.content || "");
+        setTags(
+          Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || ""
+        );
+        setImageUrl(post.imageUrl || "");
+        setIsLoading(false);
       } catch (error) {
-        console.error("Error loading post:", error)
+        console.error("Error loading post:", error);
         toast({
           title: "Error loading post",
           description: "There was a problem loading the post data.",
           variant: "destructive",
-        })
-        router.push("/admin")
+        });
+        router.push("/admin");
       }
     }
 
-    loadPost()
-  }, [postId, router, toast])
+    loadPost();
+  }, [postId, router, toast]);
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
     toast({
       title: "Image selected",
-      description: "The image has been selected and will be saved with your post.",
-    })
-  }
+      description:
+        "The image has been selected and will be saved with your post.",
+    });
+  };
 
   const handleSave = async () => {
     if (!title) {
@@ -112,8 +122,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         title: "Missing title",
         description: "Please enter a title for your post.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!category) {
@@ -121,18 +131,18 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         title: "Missing category",
         description: "Please select a category for your post.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Update the article using the admin API
       const response = await fetch(`/api/admin/articles/${postId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
@@ -143,7 +153,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           content,
           imageUrl,
           author: "Admin",
-          tags: tags.split(',').map(tag => tag.trim()),
+          tags: tags.split(",").map((tag) => tag.trim()),
           type: "article",
           status: "published",
           // Add trending flags (default to false)
@@ -153,49 +163,49 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           // Add featured article flags (default to false)
           featuredHome: false,
           featuredEdmonton: false,
-          featuredCalgary: false
-        })
-      })
+          featuredCalgary: false,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update article')
+        throw new Error("Failed to update article");
       }
 
-      const updatedPost = await response.json()
+      const updatedPost = await response.json();
 
       toast({
         title: "Post updated",
         description: "Your post has been updated successfully.",
-      })
+      });
 
       // Redirect to the article page using title-based URL for better SEO
       const urlTitle = title
         .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-        .substring(0, 100)
-      
-      router.push(`/articles/${urlTitle}`)
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .substring(0, 100);
+
+      router.push(`/articles/${urlTitle}`);
     } catch (error) {
-      console.error("Error updating post:", error)
+      console.error("Error updating post:", error);
       toast({
         title: "Error updating post",
         description: "There was a problem updating your post.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p>Loading post...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -339,5 +349,5 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         />
       )}
     </div>
-  )
+  );
 }

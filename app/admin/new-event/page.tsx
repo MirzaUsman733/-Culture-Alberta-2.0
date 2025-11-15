@@ -1,50 +1,56 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, Upload } from "lucide-react"
+import { ArrowLeft, Save, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { SimpleTextEditor } from "@/app/admin/components/simple-text-editor"
-import { useToast } from "@/hooks/use-toast"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { SimpleTextEditor } from "@/app/admin/components/simple-text-editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewEventPage() {
-  const { toast } = useToast()
-  const router = useRouter()
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [startMonth, setStartMonth] = useState("")
-  const [startDay, setStartDay] = useState("")
-  const [startYear, setStartYear] = useState("")
-  const [endMonth, setEndMonth] = useState("")
-  const [endDay, setEndDay] = useState("")
-  const [endYear, setEndYear] = useState("")
-  const [location, setLocation] = useState("")
-  const [description, setDescription] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [ticketUrl, setTicketUrl] = useState("")
-  const [organizer, setOrganizer] = useState("")
-  const [contactEmail, setContactEmail] = useState("")
-  const [contactPhone, setContactPhone] = useState("")
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [startMonth, setStartMonth] = useState("");
+  const [startDay, setStartDay] = useState("");
+  const [startYear, setStartYear] = useState("");
+  const [endMonth, setEndMonth] = useState("");
+  const [endDay, setEndDay] = useState("");
+  const [endYear, setEndYear] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [ticketUrl, setTicketUrl] = useState("");
+  const [organizer, setOrganizer] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
 
     toast({
       title: "Image selected",
-      description: "The image has been selected and will be saved with your event.",
-    })
-  }
+      description:
+        "The image has been selected and will be saved with your event.",
+    });
+  };
 
   const handleSave = async () => {
     if (!title) {
@@ -52,8 +58,8 @@ export default function NewEventPage() {
         title: "Missing title",
         description: "Please enter a title for your event.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!category) {
@@ -61,8 +67,8 @@ export default function NewEventPage() {
         title: "Missing category",
         description: "Please select a category for your event.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!startMonth || !startDay || !startYear) {
@@ -70,8 +76,8 @@ export default function NewEventPage() {
         title: "Missing date",
         description: "Please select month, day, and year for your event.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!location) {
@@ -79,8 +85,8 @@ export default function NewEventPage() {
         title: "Missing location",
         description: "Please enter a location for your event.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!description) {
@@ -88,86 +94,106 @@ export default function NewEventPage() {
         title: "Missing description",
         description: "Please enter a description for your event.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    console.log('🎯 Starting event creation with data:', {
-      title, category, startMonth, startDay, startYear, location, description,
-      ticketUrl, organizer, contactEmail, contactPhone
-    })
+    console.log("🎯 Starting event creation with data:", {
+      title,
+      category,
+      startMonth,
+      startDay,
+      startYear,
+      location,
+      description,
+      ticketUrl,
+      organizer,
+      contactEmail,
+      contactPhone,
+    });
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Build date strings from dropdowns
-      const startDateString = `${startYear}-${startMonth.padStart(2, '0')}-${startDay.padStart(2, '0')}`
-      const endDateString = endMonth && endDay && endYear ? 
-        `${endYear}-${endMonth.padStart(2, '0')}-${endDay.padStart(2, '0')}` : null
+      const startDateString = `${startYear}-${startMonth.padStart(
+        2,
+        "0"
+      )}-${startDay.padStart(2, "0")}`;
+      const endDateString =
+        endMonth && endDay && endYear
+          ? `${endYear}-${endMonth.padStart(2, "0")}-${endDay.padStart(2, "0")}`
+          : null;
 
       // Create a new event object for the events table
       const newEvent = {
         title,
         description,
-        excerpt: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
+        excerpt:
+          description.substring(0, 150) +
+          (description.length > 150 ? "..." : ""),
         category: category.charAt(0).toUpperCase() + category.slice(1),
         location,
-        organizer: organizer || 'Event Organizer',
-        organizer_contact: contactEmail || contactPhone || '',
+        organizer: organizer || "Event Organizer",
+        organizer_contact: contactEmail || contactPhone || "",
         event_date: new Date(startDateString).toISOString(), // Convert to ISO format
-        event_end_date: endDateString ? new Date(endDateString).toISOString() : undefined,
-        imageUrl: imageUrl || '', // Fixed: use imageUrl instead of image_url
-        website_url: ticketUrl || '',
-        status: 'published' as const
-      }
-      
-      console.log('📝 Creating event with data:', newEvent)
+        event_end_date: endDateString
+          ? new Date(endDateString).toISOString()
+          : undefined,
+        imageUrl: imageUrl || "", // Fixed: use imageUrl instead of image_url
+        website_url: ticketUrl || "",
+        status: "published" as const,
+      };
+
+      console.log("📝 Creating event with data:", newEvent);
 
       // Save to the events table via API
-      console.log('🚀 Calling create API...')
-      const createResponse = await fetch('/api/admin/events/create', {
-        method: 'POST',
+      console.log("🚀 Calling create API...");
+      const createResponse = await fetch("/api/admin/events/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newEvent),
-      })
-      
+      });
+
       if (!createResponse.ok) {
-        throw new Error('Failed to create event')
+        throw new Error("Failed to create event");
       }
-      
-      const createResult = await createResponse.json()
-      console.log('✅ Create API result:', createResult)
-      console.log("New event saved:", createResult.event)
+
+      const createResult = await createResponse.json();
+      console.log("✅ Create API result:", createResult);
+      console.log("New event saved:", createResult.event);
 
       // Check if there's a warning about local-only save
       if (createResult.warning) {
         toast({
           title: "Event saved locally only",
-          description: createResult.message + " - Supabase connection failed. Please click Auto Sync later.",
+          description:
+            createResult.message +
+            " - Supabase connection failed. Please click Auto Sync later.",
           variant: "destructive",
-        })
+        });
       } else {
         toast({
           title: "Event created",
           description: "Your event has been created successfully.",
-        })
+        });
       }
 
       // Redirect back to admin events list to see the new event
-      router.push('/admin/events')
+      router.push("/admin/events");
     } catch (error) {
-      console.error("Error creating event:", error)
+      console.error("Error creating event:", error);
       toast({
         title: "Error creating event",
         description: "There was a problem creating your event.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -262,7 +288,7 @@ export default function NewEventPage() {
                         <SelectItem value="12">December</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Select value={startDay} onValueChange={setStartDay}>
                       <SelectTrigger>
                         <SelectValue placeholder="Day" />
@@ -275,19 +301,19 @@ export default function NewEventPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    
+
                     <Select value={startYear} onValueChange={setStartYear}>
                       <SelectTrigger>
                         <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: 10 }, (_, i) => {
-                          const year = new Date().getFullYear() + i
+                          const year = new Date().getFullYear() + i;
                           return (
                             <SelectItem key={year} value={String(year)}>
                               {year}
                             </SelectItem>
-                          )
+                          );
                         })}
                       </SelectContent>
                     </Select>
@@ -316,7 +342,7 @@ export default function NewEventPage() {
                         <SelectItem value="12">December</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Select value={endDay} onValueChange={setEndDay}>
                       <SelectTrigger>
                         <SelectValue placeholder="Day" />
@@ -329,19 +355,19 @@ export default function NewEventPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    
+
                     <Select value={endYear} onValueChange={setEndYear}>
                       <SelectTrigger>
                         <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: 10 }, (_, i) => {
-                          const year = new Date().getFullYear() + i
+                          const year = new Date().getFullYear() + i;
                           return (
                             <SelectItem key={year} value={String(year)}>
                               {year}
                             </SelectItem>
-                          )
+                          );
                         })}
                       </SelectContent>
                     </Select>
@@ -369,8 +395,10 @@ export default function NewEventPage() {
                           alt="Event image preview"
                           className="w-full h-full object-contain"
                           onError={(e) => {
-                            console.error("Image failed to load:", imageUrl)
-                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(title || "New Event")}`
+                            console.error("Image failed to load:", imageUrl);
+                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(
+                              title || "New Event"
+                            )}`;
                           }}
                         />
                       </div>
@@ -384,7 +412,11 @@ export default function NewEventPage() {
                     <span className="text-sm text-muted-foreground truncate max-w-[70%]">
                       {imageUrl || "No image selected"}
                     </span>
-                    <Button variant="outline" size="sm" onClick={() => setShowImageUploader(true)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImageUploader(true)}
+                    >
                       {imageUrl ? "Replace Image" : "Add Image"}
                     </Button>
                   </div>
@@ -461,5 +493,5 @@ export default function NewEventPage() {
         />
       )}
     </div>
-  )
+  );
 }

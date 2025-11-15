@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AdminPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
     // Redirect to the dashboard page
-    console.log("Admin page loaded, redirecting to dashboard...")
-    router.push("/admin/dashboard")
-  }, [router])
+    console.log("Admin page loaded, redirecting to dashboard...");
+    router.push("/admin/dashboard");
+  }, [router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -19,5 +19,5 @@ export default function AdminPage() {
         <p className="text-gray-600">Loading admin panel...</p>
       </div>
     </div>
-  )
+  );
 }

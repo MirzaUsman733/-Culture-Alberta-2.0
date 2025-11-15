@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { createFallbackImageUrl } from "../utils/image-utils"
+import { useEffect, useState } from "react";
+import { createFallbackImageUrl } from "../utils/image-utils";
 
 interface ReliableImageProps {
-  src: string
-  alt: string
-  className?: string
-  width?: number
-  height?: number
-  onLoad?: () => void
-  onError?: () => void
+  src: string;
+  alt: string;
+  className?: string;
+  width?: number;
+  height?: number;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
 /**
@@ -28,27 +28,27 @@ export function ReliableImage({
   onError,
   ...rest
 }: ReliableImageProps & React.ImgHTMLAttributes<HTMLImageElement>) {
-  const [imgSrc, setImgSrc] = useState<string>(src)
-  const [hasError, setHasError] = useState<boolean>(false)
+  const [imgSrc, setImgSrc] = useState<string>(src);
+  const [hasError, setHasError] = useState<boolean>(false);
 
   useEffect(() => {
     // Reset error state when src changes
-    setHasError(false)
-    setImgSrc(src)
-  }, [src])
+    setHasError(false);
+    setImgSrc(src);
+  }, [src]);
 
   const handleError = () => {
     if (!hasError) {
-      console.error(`Image failed to load: ${src}`)
-      setHasError(true)
-      setImgSrc(createFallbackImageUrl(alt))
-      onError?.()
+      console.error(`Image failed to load: ${src}`);
+      setHasError(true);
+      setImgSrc(createFallbackImageUrl(alt));
+      onError?.();
     }
-  }
+  };
 
   const handleLoad = () => {
-    onLoad?.()
-  }
+    onLoad?.();
+  };
 
   return (
     <img
@@ -61,5 +61,5 @@ export function ReliableImage({
       onLoad={handleLoad}
       {...rest}
     />
-  )
+  );
 }

@@ -1,129 +1,138 @@
-import { supabase } from './supabase'
+import { supabase } from "./supabase";
 
 export interface BlogPost {
-  id: string
-  title: string
-  content: string
-  excerpt: string
-  image_url: string
-  category: string
-  created_at: string
-  updated_at: string
-  author: string
-  slug: string
-  tags: string
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  image_url: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+  author: string;
+  slug: string;
+  tags: string;
 }
 
 // Create a new blog post
-export async function createPost(post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>) {
-  if (!supabase) throw new Error('Supabase not configured')
+export async function createPost(
+  post: Omit<BlogPost, "id" | "created_at" | "updated_at">
+) {
+  if (!supabase) throw new Error("Supabase not configured");
   const { data, error } = await supabase
-    .from('posts')
+    .from("posts")
     .insert([
       {
         ...post,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      }
+      },
     ])
-    .select()
+    .select();
 
-  if (error) throw error
-  return data[0]
+  if (error) throw error;
+  return data[0];
 }
 
 // Get all blog posts
 export async function getAllPosts() {
-  if (!supabase) return []
+  if (!supabase) return [];
   // PERFORMANCE: Only fetch essential fields for listings
   const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
-    .order('created_at', { ascending: false })
+    .from("posts")
+    .select(
+      "id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags"
+    )
+    .order("created_at", { ascending: false });
 
-  if (error) throw error
-  return data
+  if (error) throw error;
+  return data;
 }
 
 // Get a single blog post by ID
 export async function getPostById(id: string) {
-  if (!supabase) throw new Error('Supabase not configured')
+  if (!supabase) throw new Error("Supabase not configured");
   // PERFORMANCE: Fetch all fields for single post (content needed)
   const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
-    .eq('id', id)
-    .single()
+    .from("posts")
+    .select(
+      "id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags"
+    )
+    .eq("id", id)
+    .single();
 
-  if (error) throw error
-  return data
+  if (error) throw error;
+  return data;
 }
 
 // Get a single blog post by slug
 export async function getPostBySlug(slug: string) {
-  if (!supabase) throw new Error('Supabase not configured')
+  if (!supabase) throw new Error("Supabase not configured");
   // PERFORMANCE: Fetch all fields for single post (content needed)
   const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
-    .eq('slug', slug)
-    .single()
+    .from("posts")
+    .select(
+      "id, title, content, excerpt, image_url, category, created_at, updated_at, author, slug, tags"
+    )
+    .eq("slug", slug)
+    .single();
 
-  if (error) throw error
-  return data
+  if (error) throw error;
+  return data;
 }
 
 // Update a blog post
 export async function updatePost(id: string, updates: Partial<BlogPost>) {
-  if (!supabase) throw new Error('Supabase not configured')
+  if (!supabase) throw new Error("Supabase not configured");
   const { data, error } = await supabase
-    .from('posts')
+    .from("posts")
     .update({
       ...updates,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', id)
-    .select()
+    .eq("id", id)
+    .select();
 
-  if (error) throw error
-  return data[0]
+  if (error) throw error;
+  return data[0];
 }
 
 // Delete a blog post
 export async function deletePost(id: string) {
-  if (!supabase) throw new Error('Supabase not configured')
-  const { error } = await supabase
-    .from('posts')
-    .delete()
-    .eq('id', id)
+  if (!supabase) throw new Error("Supabase not configured");
+  const { error } = await supabase.from("posts").delete().eq("id", id);
 
-  if (error) throw error
+  if (error) throw error;
 }
 
 // Get posts by category
 export async function getPostsByCategory(category: string) {
-  if (!supabase) return []
+  if (!supabase) return [];
   // PERFORMANCE: Only fetch essential fields for listings
   const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
-    .eq('category', category)
-    .order('created_at', { ascending: false })
+    .from("posts")
+    .select(
+      "id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags"
+    )
+    .eq("category", category)
+    .order("created_at", { ascending: false });
 
-  if (error) throw error
-  return data
+  if (error) throw error;
+  return data;
 }
 
 // Search posts
 export async function searchPosts(query: string) {
-  if (!supabase) return []
+  if (!supabase) return [];
   // PERFORMANCE: Only fetch essential fields for search results (no content)
   const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags')
+    .from("posts")
+    .select(
+      "id, title, excerpt, image_url, category, created_at, updated_at, author, slug, tags"
+    )
     .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
-    .order('created_at', { ascending: false })
+    .order("created_at", { ascending: false });
 
-  if (error) throw error
-  return data
-} 
+  if (error) throw error;
+  return data;
+}

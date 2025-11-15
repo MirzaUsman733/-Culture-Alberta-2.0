@@ -35,7 +35,8 @@ const nextConfig = {
   // Production-specific optimizations
   ...(process.env.NODE_ENV === 'production' && {
     experimental: {
-      optimizeCss: true, // Optimize CSS output
+      // optimizeCss: true, // DISABLED: Requires 'critters' package which was removed
+      // CSS is already optimized via Tailwind's purging and PostCSS
       optimizePackageImports: [
         'lucide-react', 
         '@radix-ui/react-icons'

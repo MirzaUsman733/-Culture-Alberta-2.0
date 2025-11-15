@@ -7,10 +7,10 @@
  */
 export function isValidUrl(url: string): boolean {
   try {
-    new URL(url)
-    return true
+    new URL(url);
+    return true;
   } catch (e) {
-    return false
+    return false;
   }
 }
 
@@ -18,7 +18,7 @@ export function isValidUrl(url: string): boolean {
  * Checks if a URL is a blob URL
  */
 export function isBlobUrl(url: string): boolean {
-  return url.startsWith("blob:")
+  return url.startsWith("blob:");
 }
 
 /**
@@ -26,16 +26,18 @@ export function isBlobUrl(url: string): boolean {
  */
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
  * Creates a fallback image URL
  */
 export function createFallbackImageUrl(filename = "image"): string {
-  return `/placeholder.svg?height=400&width=600&name=${encodeURIComponent(filename)}`
+  return `/placeholder.svg?height=400&width=600&name=${encodeURIComponent(
+    filename
+  )}`;
 }

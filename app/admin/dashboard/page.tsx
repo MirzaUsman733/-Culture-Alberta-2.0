@@ -1,71 +1,77 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { 
-  Home, 
-  FileText,
-  Star,
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Calendar,
-  MapPin,
+  FileText,
+  Home,
   Mail,
-  RefreshCw
-} from 'lucide-react'
-import Link from 'next/link'
+  MapPin,
+  RefreshCw,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
-  const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [refreshMessage, setRefreshMessage] = useState('')
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState("");
 
   const handleRefreshCache = async () => {
-    setIsRefreshing(true)
-    setRefreshMessage('')
+    setIsRefreshing(true);
+    setRefreshMessage("");
     try {
-      const response = await fetch('/api/refresh-cache', {
-        method: 'POST'
-      })
-      const data = await response.json()
-      
+      const response = await fetch("/api/refresh-cache", {
+        method: "POST",
+      });
+      const data = await response.json();
+
       if (data.success) {
-        setRefreshMessage('✅ Cache refreshed! Newest articles will now show.')
+        setRefreshMessage("✅ Cache refreshed! Newest articles will now show.");
       } else {
-        setRefreshMessage('❌ Failed to refresh cache')
+        setRefreshMessage("❌ Failed to refresh cache");
       }
     } catch (error) {
-      setRefreshMessage('❌ Error refreshing cache')
+      setRefreshMessage("❌ Error refreshing cache");
     } finally {
-      setIsRefreshing(false)
+      setIsRefreshing(false);
       // Clear message after 5 seconds
-      setTimeout(() => setRefreshMessage(''), 5000)
+      setTimeout(() => setRefreshMessage(""), 5000);
     }
-  }
+  };
 
   useEffect(() => {
     // Check authentication using localStorage (same as admin layout)
-    const adminAuthenticated = localStorage.getItem('admin_authenticated')
-    setIsAuthenticated(adminAuthenticated === 'true')
-    setIsLoading(false)
+    const adminAuthenticated = localStorage.getItem("admin_authenticated");
+    setIsAuthenticated(adminAuthenticated === "true");
+    setIsLoading(false);
 
     if (!adminAuthenticated) {
-      router.push('/admin/login')
+      router.push("/admin/login");
     }
-  }, [router])
+  }, [router]);
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
   return (
@@ -77,12 +83,14 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Welcome back, Admin</p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleRefreshCache} 
+            <Button
+              onClick={handleRefreshCache}
               disabled={isRefreshing}
               variant="outline"
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Refresh Cache
             </Button>
             <Button asChild>
@@ -93,12 +101,16 @@ export default function AdminDashboard() {
             </Button>
           </div>
         </div>
-        
+
         {/* Refresh Message */}
         {refreshMessage && (
-          <div className={`mb-4 p-4 rounded-lg ${
-            refreshMessage.includes('✅') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
-          }`}>
+          <div
+            className={`mb-4 p-4 rounded-lg ${
+              refreshMessage.includes("✅")
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
             {refreshMessage}
           </div>
         )}
@@ -196,14 +208,16 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle>About This Dashboard</CardTitle>
             <CardDescription>
-              Analytics dashboard has been removed to reduce Vercel usage and improve performance.
+              Analytics dashboard has been removed to reduce Vercel usage and
+              improve performance.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
               <p className="mb-2">
-                The internal analytics system was contributing to high Vercel resource usage.
-                You can still track your website performance using:
+                The internal analytics system was contributing to high Vercel
+                resource usage. You can still track your website performance
+                using:
               </p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Google Analytics (already integrated)</li>
@@ -215,5 +229,5 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

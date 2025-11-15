@@ -1,13 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Edit, Plus, Search, Trash2, Star } from "lucide-react"
+import { Edit, Plus, Search, Star, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -15,156 +23,176 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 
 export default function BestOfAdminPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
-  const [locationFilter, setLocationFilter] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [deleteItemId, setDeleteItemId] = useState<string | null>(null)
-  const [bestOfItems, setBestOfItems] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [bestOfItems, setBestOfItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const itemsPerPage = 10
+  const itemsPerPage = 10;
 
   // Load best of items data on component mount
   useEffect(() => {
     // Start with the default items
-    const itemsData = [...mockBestOfItems]
+    const itemsData = [...mockBestOfItems];
 
     // Try to load any items from localStorage
     try {
       // Get all localStorage keys
-      const keys = Object.keys(localStorage)
+      const keys = Object.keys(localStorage);
 
       // Find keys that match our bestof pattern
-      const bestofKeys = keys.filter((key) => key.startsWith("bestof_") && !key.startsWith("bestof_image_"))
+      const bestofKeys = keys.filter(
+        (key) => key.startsWith("bestof_") && !key.startsWith("bestof_image_")
+      );
 
       for (const key of bestofKeys) {
-        const itemId = key.replace("bestof_", "")
-        const savedItemJson = localStorage.getItem(key)
+        const itemId = key.replace("bestof_", "");
+        const savedItemJson = localStorage.getItem(key);
 
         if (savedItemJson) {
-          const savedItem = JSON.parse(savedItemJson)
+          const savedItem = JSON.parse(savedItemJson);
 
           // Check if this item already exists in our array
-          const existingIndex = itemsData.findIndex((item) => item.id === itemId)
+          const existingIndex = itemsData.findIndex(
+            (item) => item.id === itemId
+          );
           if (existingIndex !== -1) {
             // Update existing item
-            itemsData[existingIndex] = savedItem
+            itemsData[existingIndex] = savedItem;
           } else {
             // Add new item
-            itemsData.push(savedItem)
+            itemsData.push(savedItem);
           }
         }
       }
     } catch (error) {
-      console.error("Error loading saved best of items data:", error)
+      console.error("Error loading saved best of items data:", error);
     }
 
-    setBestOfItems(itemsData)
-    setIsLoading(false)
-  }, [])
+    setBestOfItems(itemsData);
+    setIsLoading(false);
+  }, []);
 
   // DSA OPTIMIZATION: Pre-compute filter values once to avoid repeated operations
   // Filter items based on search term, category, and location - O(n) single pass
-  const searchTermLower = searchTerm.toLowerCase()
-  const categoryFilterLower = categoryFilter.toLowerCase()
-  const locationFilterLower = locationFilter.toLowerCase()
-  const isAllCategories = categoryFilter === "all"
-  const isAllLocations = locationFilter === "all"
-  
+  const searchTermLower = searchTerm.toLowerCase();
+  const categoryFilterLower = categoryFilter.toLowerCase();
+  const locationFilterLower = locationFilter.toLowerCase();
+  const isAllCategories = categoryFilter === "all";
+  const isAllLocations = locationFilter === "all";
+
   const filteredItems = bestOfItems.filter((item) => {
     // Early returns for better performance
-    if (!isAllCategories && item.category.toLowerCase() !== categoryFilterLower) {
-      return false
+    if (
+      !isAllCategories &&
+      item.category.toLowerCase() !== categoryFilterLower
+    ) {
+      return false;
     }
-    
-    if (!isAllLocations && !item.location.toLowerCase().includes(locationFilterLower)) {
-      return false
+
+    if (
+      !isAllLocations &&
+      !item.location.toLowerCase().includes(locationFilterLower)
+    ) {
+      return false;
     }
-    
+
     if (searchTerm && !item.name.toLowerCase().includes(searchTermLower)) {
-      return false
+      return false;
     }
-    
-    return true
-  })
+
+    return true;
+  });
 
   // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   // DSA OPTIMIZATION: Single-pass extraction with Set for O(1) deduplication
   // Get unique categories and locations in one pass - O(n) instead of O(2n)
-  const categorySet = new Set<string>()
-  const locationSet = new Set<string>()
-  
+  const categorySet = new Set<string>();
+  const locationSet = new Set<string>();
+
   for (const item of bestOfItems) {
     // Add category to set (automatic deduplication)
     if (item.category) {
-      categorySet.add(item.category)
+      categorySet.add(item.category);
     }
-    
+
     // Extract city from location and add to set
     if (item.location) {
-      const city = item.location.split(",")[0].trim()
+      const city = item.location.split(",")[0].trim();
       if (city) {
-        locationSet.add(city)
+        locationSet.add(city);
       }
     }
   }
-  
-  const categories = Array.from(categorySet)
-  const locations = Array.from(locationSet)
+
+  const categories = Array.from(categorySet);
+  const locations = Array.from(locationSet);
 
   const handleDeleteItem = (id: string) => {
     try {
       // Remove from localStorage if it exists
-      localStorage.removeItem(`bestof_${id}`)
-      localStorage.removeItem(`bestof_image_${id}`)
+      localStorage.removeItem(`bestof_${id}`);
+      localStorage.removeItem(`bestof_image_${id}`);
 
       // Remove from state
-      setBestOfItems(bestOfItems.filter((item) => item.id !== id))
+      setBestOfItems(bestOfItems.filter((item) => item.id !== id));
 
       toast({
         title: "Item deleted",
         description: "The listing has been successfully deleted.",
-      })
+      });
     } catch (error) {
-      console.error("Error deleting item:", error)
+      console.error("Error deleting item:", error);
       toast({
         title: "Error deleting item",
         description: "There was a problem deleting the listing.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-6 md:gap-10">
-            <Link href="/admin/dashboard" className="flex items-center space-x-2">
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center space-x-2"
+            >
               <span className="text-xl font-bold">Culture Alberta</span>
             </Link>
-            <span className="text-lg font-semibold">Best of Alberta Management</span>
+            <span className="text-lg font-semibold">
+              Best of Alberta Management
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
@@ -181,7 +209,9 @@ export default function BestOfAdminPage() {
       <main className="flex-1 container py-10">
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h2 className="text-xl font-semibold">Best of Alberta Listings ({filteredItems.length})</h2>
+            <h2 className="text-xl font-semibold">
+              Best of Alberta Listings ({filteredItems.length})
+            </h2>
             <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -270,7 +300,8 @@ export default function BestOfAdminPage() {
                               <DialogHeader>
                                 <DialogTitle>Confirm Deletion</DialogTitle>
                                 <DialogDescription>
-                                  Are you sure you want to delete "{item.name}"? This action cannot be undone.
+                                  Are you sure you want to delete "{item.name}"?
+                                  This action cannot be undone.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter className="mt-4">
@@ -281,7 +312,7 @@ export default function BestOfAdminPage() {
                                   variant="destructive"
                                   onClick={() => {
                                     if (deleteItemId) {
-                                      handleDeleteItem(deleteItemId)
+                                      handleDeleteItem(deleteItemId);
                                     }
                                   }}
                                 >
@@ -296,7 +327,10 @@ export default function BestOfAdminPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={5}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No listings found. Try adjusting your filters.
                     </TableCell>
                   </TableRow>
@@ -310,14 +344,23 @@ export default function BestOfAdminPage() {
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
 
                 {Array.from({ length: totalPages }).map((_, index) => (
                   <PaginationItem key={index}>
-                    <PaginationLink isActive={currentPage === index + 1} onClick={() => setCurrentPage(index + 1)}>
+                    <PaginationLink
+                      isActive={currentPage === index + 1}
+                      onClick={() => setCurrentPage(index + 1)}
+                    >
                       {index + 1}
                     </PaginationLink>
                   </PaginationItem>
@@ -325,8 +368,14 @@ export default function BestOfAdminPage() {
 
                 <PaginationItem>
                   <PaginationNext
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -342,7 +391,7 @@ export default function BestOfAdminPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
 // Sample data for Best of Alberta listings
@@ -350,7 +399,8 @@ const mockBestOfItems = [
   {
     id: "d1",
     name: "Smile Dental Care",
-    description: "Award-winning dental practice offering comprehensive care with the latest technology.",
+    description:
+      "Award-winning dental practice offering comprehensive care with the latest technology.",
     image: "/placeholder.svg?height=400&width=600&text=Smile+Dental",
     location: "Edmonton, AB",
     category: "Dentists",
@@ -359,8 +409,10 @@ const mockBestOfItems = [
   {
     id: "d2",
     name: "Calgary Family Dentistry",
-    description: "Family-friendly dental clinic specializing in preventative care and cosmetic dentistry.",
-    image: "/placeholder.svg?height=400&width=600&text=Calgary+Family+Dentistry",
+    description:
+      "Family-friendly dental clinic specializing in preventative care and cosmetic dentistry.",
+    image:
+      "/placeholder.svg?height=400&width=600&text=Calgary+Family+Dentistry",
     location: "Calgary, AB",
     category: "Dentists",
     rating: 4.8,
@@ -368,7 +420,8 @@ const mockBestOfItems = [
   {
     id: "l1",
     name: "Alberta Legal Partners",
-    description: "Full-service law firm with expertise in corporate, family, and real estate law.",
+    description:
+      "Full-service law firm with expertise in corporate, family, and real estate law.",
     image: "/placeholder.svg?height=400&width=600&text=Alberta+Legal+Partners",
     location: "Calgary, AB",
     category: "Lawyers",
@@ -377,7 +430,8 @@ const mockBestOfItems = [
   {
     id: "l2",
     name: "Edmonton Law Group",
-    description: "Experienced legal team specializing in personal injury and insurance claims.",
+    description:
+      "Experienced legal team specializing in personal injury and insurance claims.",
     image: "/placeholder.svg?height=400&width=600&text=Edmonton+Law+Group",
     location: "Edmonton, AB",
     category: "Lawyers",
@@ -386,7 +440,8 @@ const mockBestOfItems = [
   {
     id: "r1",
     name: "The Prairie Table",
-    description: "Farm-to-table restaurant showcasing the best of Alberta's local ingredients and cuisine.",
+    description:
+      "Farm-to-table restaurant showcasing the best of Alberta's local ingredients and cuisine.",
     image: "/placeholder.svg?height=400&width=600&text=Prairie+Table",
     location: "Edmonton, AB",
     category: "Restaurants",
@@ -395,10 +450,11 @@ const mockBestOfItems = [
   {
     id: "r2",
     name: "Calgary Steakhouse",
-    description: "Premium steakhouse featuring Alberta's world-famous beef and extensive wine selection.",
+    description:
+      "Premium steakhouse featuring Alberta's world-famous beef and extensive wine selection.",
     image: "/placeholder.svg?height=400&width=600&text=Calgary+Steakhouse",
     location: "Calgary, AB",
     category: "Restaurants",
     rating: 4.8,
   },
-]
+];

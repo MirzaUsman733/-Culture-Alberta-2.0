@@ -10,6 +10,7 @@ import { optimizeSpeedInsights } from '@/lib/vercel-optimizations'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.culturealberta.com'),
   title: 'Culture Alberta | Best Culture, Events & Food in Calgary & Edmonton',
   description: 'Your guide to Alberta\'s culture: events, restaurants, festivals & local experiences in Calgary, Edmonton & beyond.',
   keywords: 'Alberta culture, Calgary events, Edmonton culture, Alberta tourism, local events, cultural activities, Alberta restaurants, Alberta attractions',

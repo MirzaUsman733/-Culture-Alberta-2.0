@@ -1,42 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, Save, Upload, Star } from "lucide-react"
+import { ArrowLeft, Save, Star, Upload } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { useToast } from "@/hooks/use-toast"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewBestOfPage() {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const [name, setName] = useState("")
-  const [category, setCategory] = useState("")
-  const [description, setDescription] = useState("")
-  const [location, setLocation] = useState("")
-  const [rating, setRating] = useState("4.8")
-  const [address, setAddress] = useState("")
-  const [phone, setPhone] = useState("")
-  const [website, setWebsite] = useState("")
-  const [hours, setHours] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [rating, setRating] = useState("4.8");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
+  const [hours, setHours] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
 
     toast({
       title: "Image selected",
-      description: "The image has been selected and will be saved with your listing.",
-    })
-  }
+      description:
+        "The image has been selected and will be saved with your listing.",
+    });
+  };
 
   const handleSave = async () => {
     if (!name) {
@@ -44,8 +51,8 @@ export default function NewBestOfPage() {
         title: "Missing name",
         description: "Please enter a name for the business.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!category) {
@@ -53,8 +60,8 @@ export default function NewBestOfPage() {
         title: "Missing category",
         description: "Please select a category for the business.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!location) {
@@ -62,15 +69,15 @@ export default function NewBestOfPage() {
         title: "Missing location",
         description: "Please enter a location for the business.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Simulate saving the listing
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Create a new listing object
       const newListing = {
@@ -85,38 +92,39 @@ export default function NewBestOfPage() {
         website,
         hours,
         image: imageUrl,
-      }
+      };
 
       // In a real app, you would save this to your database
-      console.log("New listing:", newListing)
+      console.log("New listing:", newListing);
 
       toast({
         title: "Listing created",
-        description: "Your Best of Alberta listing has been created successfully.",
-      })
+        description:
+          "Your Best of Alberta listing has been created successfully.",
+      });
 
       // Reset the form
-      setName("")
-      setCategory("")
-      setDescription("")
-      setLocation("")
-      setRating("4.8")
-      setAddress("")
-      setPhone("")
-      setWebsite("")
-      setHours("")
-      setImageUrl("")
+      setName("");
+      setCategory("");
+      setDescription("");
+      setLocation("");
+      setRating("4.8");
+      setAddress("");
+      setPhone("");
+      setWebsite("");
+      setHours("");
+      setImageUrl("");
     } catch (error) {
-      console.error("Error creating listing:", error)
+      console.error("Error creating listing:", error);
       toast({
         title: "Error creating listing",
         description: "There was a problem creating your listing.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -144,7 +152,9 @@ export default function NewBestOfPage() {
       <main className="flex-1 container py-10">
         <div className="max-w-3xl mx-auto space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-6">Create New Best of Alberta Listing</h1>
+            <h1 className="text-3xl font-bold mb-6">
+              Create New Best of Alberta Listing
+            </h1>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Business Name</Label>
@@ -169,9 +179,15 @@ export default function NewBestOfPage() {
                       <SelectItem value="lawyers">Lawyers</SelectItem>
                       <SelectItem value="accountants">Accountants</SelectItem>
                       <SelectItem value="doctors">Doctors</SelectItem>
-                      <SelectItem value="real estate agents">Real Estate Agents</SelectItem>
-                      <SelectItem value="home services">Home Services</SelectItem>
-                      <SelectItem value="auto services">Auto Services</SelectItem>
+                      <SelectItem value="real estate agents">
+                        Real Estate Agents
+                      </SelectItem>
+                      <SelectItem value="home services">
+                        Home Services
+                      </SelectItem>
+                      <SelectItem value="auto services">
+                        Auto Services
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -200,7 +216,8 @@ export default function NewBestOfPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="rating" className="flex items-center gap-2">
-                  Rating <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                  Rating{" "}
+                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                 </Label>
                 <Select value={rating} onValueChange={setRating}>
                   <SelectTrigger id="rating">
@@ -233,8 +250,10 @@ export default function NewBestOfPage() {
                           alt="Business image preview"
                           className="w-full h-full object-contain"
                           onError={(e) => {
-                            console.error("Image failed to load:", imageUrl)
-                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(name || "New Business")}`
+                            console.error("Image failed to load:", imageUrl);
+                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(
+                              name || "New Business"
+                            )}`;
                           }}
                         />
                       </div>
@@ -248,7 +267,11 @@ export default function NewBestOfPage() {
                     <span className="text-sm text-muted-foreground truncate max-w-[70%]">
                       {imageUrl || "No image selected"}
                     </span>
-                    <Button variant="outline" size="sm" onClick={() => setShowImageUploader(true)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImageUploader(true)}
+                    >
                       {imageUrl ? "Replace Image" : "Add Image"}
                     </Button>
                   </div>
@@ -325,5 +348,5 @@ export default function NewBestOfPage() {
         />
       )}
     </div>
-  )
+  );
 }

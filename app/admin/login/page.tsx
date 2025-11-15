@@ -1,49 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-    
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     try {
-      const response = await fetch('/api/admin/login-minimal', {
-        method: 'POST',
+      const response = await fetch("/api/admin/login-minimal", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        localStorage.setItem("admin_authenticated", "true")
-        localStorage.setItem("admin_user", data.username)
-        localStorage.setItem("admin_login_time", Date.now().toString())
-        localStorage.setItem("admin_token", data.token)
-        
-        router.push("/admin")
+        const data = await response.json();
+        localStorage.setItem("admin_authenticated", "true");
+        localStorage.setItem("admin_user", data.username);
+        localStorage.setItem("admin_login_time", Date.now().toString());
+        localStorage.setItem("admin_token", data.token);
+
+        router.push("/admin");
       } else {
-        const errorData = await response.json()
-        setError(errorData.message || "Invalid credentials")
+        const errorData = await response.json();
+        setError(errorData.message || "Invalid credentials");
       }
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      setError("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -97,19 +97,15 @@ export default function AdminLogin() {
           )}
 
           <div>
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </div>
         </form>
-        
+
         <div className="text-center">
-          <a 
-            href="/" 
+          <a
+            href="/"
             className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
           >
             ← Back to website
@@ -117,5 +113,5 @@ export default function AdminLogin() {
         </div>
       </div>
     </div>
-  )
+  );
 }

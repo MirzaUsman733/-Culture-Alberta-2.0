@@ -1,16 +1,3 @@
-/**
- * Optimized About Page
- * 
- * Performance optimizations:
- * - Uses Next.js Image component for optimized images
- * - Static page generation (no data fetching needed)
- * - Proper SEO metadata
- * - Accessible markup
- * - No console.logs
- * 
- * Used as: About page route (/about)
- */
-
 import Image from 'next/image'
 import Link from 'next/link'
 import { PageSEO } from '@/components/seo/page-seo'

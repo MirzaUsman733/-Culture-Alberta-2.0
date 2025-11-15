@@ -1,23 +1,3 @@
-/**
- * Homepage API Route
- * 
- * Optimized API for fetching homepage data with minimal queries
- * 
- * Performance optimizations:
- * - Fetches only essential data for homepage sections
- * - Minimal fields (no content field)
- * - Parallel queries for articles and events
- * - Timeout protection
- * - Uses database indexes for fast queries
- */
-
-/**
- * Homepage API Route
- * 
- * Optimized API for fetching homepage data
- * Uses shared getOptimizedHomepageData function for consistency
- */
-
 import { NextResponse } from 'next/server'
 import { getOptimizedHomepageData } from '@/lib/data/homepage-data'
 

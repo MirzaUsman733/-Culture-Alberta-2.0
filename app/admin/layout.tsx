@@ -1,85 +1,92 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
-import { BarChart2, FileText, Calendar, Award, Mail, RefreshCw } from "lucide-react"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import {
+  Award,
+  BarChart2,
+  Calendar,
+  FileText,
+  Mail,
+  RefreshCw,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isClient, setIsClient] = useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    if (!isClient) return
+    if (!isClient) return;
 
-    console.log("Admin layout: Checking authentication...")
-    
+    console.log("Admin layout: Checking authentication...");
+
     // Check if user is authenticated
-    const adminAuthenticated = localStorage.getItem('admin_authenticated')
-    const adminToken = localStorage.getItem('admin_token')
-    const loginTime = localStorage.getItem('admin_login_time')
-    
+    const adminAuthenticated = localStorage.getItem("admin_authenticated");
+    const adminToken = localStorage.getItem("admin_token");
+    const loginTime = localStorage.getItem("admin_login_time");
+
     console.log("Admin layout: Auth check results:", {
       adminAuthenticated,
       hasToken: !!adminToken,
-      loginTime
-    })
-    
+      loginTime,
+    });
+
     // Check if token is expired (24 hours)
     if (loginTime) {
-      const loginTimestamp = parseInt(loginTime)
-      const now = Date.now()
-      const hoursSinceLogin = (now - loginTimestamp) / (1000 * 60 * 60)
-      
+      const loginTimestamp = parseInt(loginTime);
+      const now = Date.now();
+      const hoursSinceLogin = (now - loginTimestamp) / (1000 * 60 * 60);
+
       if (hoursSinceLogin > 24) {
-        console.log("Admin layout: Token expired, clearing storage")
+        console.log("Admin layout: Token expired, clearing storage");
         // Token expired, clear storage and redirect to login
-        localStorage.removeItem('admin_authenticated')
-        localStorage.removeItem('admin_token')
-        localStorage.removeItem('admin_user')
-        localStorage.removeItem('admin_login_time')
-        setIsLoading(false)
-        router.push('/admin/login')
-        return
+        localStorage.removeItem("admin_authenticated");
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_user");
+        localStorage.removeItem("admin_login_time");
+        setIsLoading(false);
+        router.push("/admin/login");
+        return;
       }
     }
-    
+
     if (!adminAuthenticated || !adminToken) {
-      console.log("Admin layout: Not authenticated, redirecting to login")
-      setIsLoading(false)
-      router.push('/admin/login')
-      return
+      console.log("Admin layout: Not authenticated, redirecting to login");
+      setIsLoading(false);
+      router.push("/admin/login");
+      return;
     }
-    
-    console.log("Admin layout: Authenticated successfully")
-    setIsAuthenticated(true)
-    setIsLoading(false)
-  }, [router, pathname, isClient])
+
+    console.log("Admin layout: Authenticated successfully");
+    setIsAuthenticated(true);
+    setIsLoading(false);
+  }, [router, pathname, isClient]);
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart2 },
-    { name: 'Articles', href: '/admin/articles', icon: FileText },
-    { name: 'Events', href: '/admin/events', icon: Calendar },
-    { name: 'Best of Alberta', href: '/admin/best-of', icon: Award },
-    { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
-    { name: 'Sync Articles', href: '/admin/sync-articles', icon: RefreshCw },
-  ]
+    { name: "Dashboard", href: "/admin/dashboard", icon: BarChart2 },
+    { name: "Articles", href: "/admin/articles", icon: FileText },
+    { name: "Events", href: "/admin/events", icon: Calendar },
+    { name: "Best of Alberta", href: "/admin/best-of", icon: Award },
+    { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
+    { name: "Sync Articles", href: "/admin/sync-articles", icon: RefreshCw },
+  ];
 
   // Don't show the layout on the login page
-  if (pathname === '/admin/login') {
-    return <>{children}</>
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
   }
 
   // Show loading state while checking authentication or before client hydration
@@ -91,7 +98,7 @@ export default function AdminLayout({
           <p className="text-gray-600">Checking admin access...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Only show admin layout if authenticated
@@ -103,7 +110,7 @@ export default function AdminLayout({
           <p className="text-gray-600">Redirecting to login...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -122,21 +129,21 @@ export default function AdminLayout({
             {/* Navigation */}
             <nav className="px-3 mt-6">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-black text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-black text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
           </div>
@@ -145,13 +152,11 @@ export default function AdminLayout({
 
       {/* Main content */}
       <div className="pl-64">
-        <main className="p-8">
-          {children}
-        </main>
+        <main className="p-8">{children}</main>
       </div>
-      
+
       {/* Toast notifications */}
       <Toaster />
     </div>
-  )
+  );
 }

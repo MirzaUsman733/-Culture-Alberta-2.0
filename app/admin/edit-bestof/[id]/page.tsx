@@ -1,30 +1,41 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { ArrowLeft, Save, Upload, Star } from "lucide-react"
+import { ArrowLeft, Save, Star, Upload } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageUploader } from "@/app/admin/components/image-uploader"
-import { useToast } from "@/hooks/use-toast"
+import { ImageUploader } from "@/app/admin/components/image-uploader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
-export default function EditBestOfPage({ params }: { params: Promise<{ id: string }> }) {
-  const [id, setId] = useState<string>("")
-  
+export default function EditBestOfPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const [id, setId] = useState<string>("");
+
   // Handle async params
   useEffect(() => {
-    params.then(({ id: paramId }) => setId(paramId))
-  }, [params])
+    params.then(({ id: paramId }) => setId(paramId));
+  }, [params]);
   // Sample data for Best of Alberta listings
   const bestOfItems = [
     {
       id: "d1",
       name: "Smile Dental Care",
-      description: "Award-winning dental practice offering comprehensive care with the latest technology.",
+      description:
+        "Award-winning dental practice offering comprehensive care with the latest technology.",
       image: "/placeholder.svg?height=400&width=600&text=Smile+Dental",
       location: "Edmonton, AB",
       category: "Dentists",
@@ -37,7 +48,8 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
     {
       id: "r1",
       name: "The Prairie Table",
-      description: "Farm-to-table restaurant showcasing the best of Alberta's local ingredients and cuisine.",
+      description:
+        "Farm-to-table restaurant showcasing the best of Alberta's local ingredients and cuisine.",
       image: "/placeholder.svg?height=400&width=600&text=Prairie+Table",
       location: "Edmonton, AB",
       category: "Restaurants",
@@ -47,40 +59,40 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
       website: "https://www.prairietable.ca",
       hours: "Tuesday-Sunday: 5pm-10pm, Monday: Closed",
     },
-  ]
+  ];
 
-  const item = bestOfItems.find((i) => i.id === id) || bestOfItems[0]
-  const { toast } = useToast()
+  const item = bestOfItems.find((i) => i.id === id) || bestOfItems[0];
+  const { toast } = useToast();
 
-  const [name, setName] = useState(item.name)
-  const [category, setCategory] = useState(item.category.toLowerCase())
-  const [description, setDescription] = useState(item.description)
-  const [location, setLocation] = useState(item.location)
-  const [rating, setRating] = useState(item.rating.toString())
-  const [address, setAddress] = useState(item.address || "")
-  const [phone, setPhone] = useState(item.phone || "")
-  const [website, setWebsite] = useState(item.website || "")
-  const [hours, setHours] = useState(item.hours || "")
-  const [imageUrl, setImageUrl] = useState(item.image || "")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const [name, setName] = useState(item.name);
+  const [category, setCategory] = useState(item.category.toLowerCase());
+  const [description, setDescription] = useState(item.description);
+  const [location, setLocation] = useState(item.location);
+  const [rating, setRating] = useState(item.rating.toString());
+  const [address, setAddress] = useState(item.address || "");
+  const [phone, setPhone] = useState(item.phone || "");
+  const [website, setWebsite] = useState(item.website || "");
+  const [hours, setHours] = useState(item.hours || "");
+  const [imageUrl, setImageUrl] = useState(item.image || "");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleImageSelect = (url: string) => {
-    setImageUrl(url)
-    setShowImageUploader(false)
+    setImageUrl(url);
+    setShowImageUploader(false);
 
     toast({
       title: "Image updated",
       description: "The business image has been updated successfully.",
-    })
-  }
+    });
+  };
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Simulate saving the listing
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Update our local data
       const updatedItem = {
@@ -95,26 +107,27 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
         website,
         hours,
         image: imageUrl,
-      }
+      };
 
       // In a real app, you would save this to your database
-      console.log("Updated listing:", updatedItem)
+      console.log("Updated listing:", updatedItem);
 
       toast({
         title: "Listing updated",
-        description: "Your Best of Alberta listing has been updated successfully.",
-      })
+        description:
+          "Your Best of Alberta listing has been updated successfully.",
+      });
     } catch (error) {
-      console.error("Error saving listing:", error)
+      console.error("Error saving listing:", error);
       toast({
         title: "Error saving listing",
         description: "There was a problem saving your listing.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -142,11 +155,17 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
       <main className="flex-1 container py-10">
         <div className="max-w-3xl mx-auto space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-6">Edit Best of Alberta Listing</h1>
+            <h1 className="text-3xl font-bold mb-6">
+              Edit Best of Alberta Listing
+            </h1>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Business Name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -162,16 +181,26 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
                       <SelectItem value="lawyers">Lawyers</SelectItem>
                       <SelectItem value="accountants">Accountants</SelectItem>
                       <SelectItem value="doctors">Doctors</SelectItem>
-                      <SelectItem value="real estate agents">Real Estate Agents</SelectItem>
-                      <SelectItem value="home services">Home Services</SelectItem>
-                      <SelectItem value="auto services">Auto Services</SelectItem>
+                      <SelectItem value="real estate agents">
+                        Real Estate Agents
+                      </SelectItem>
+                      <SelectItem value="home services">
+                        Home Services
+                      </SelectItem>
+                      <SelectItem value="auto services">
+                        Auto Services
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
-                  <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -187,7 +216,8 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
 
               <div className="space-y-2">
                 <Label htmlFor="rating" className="flex items-center gap-2">
-                  Rating <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                  Rating{" "}
+                  <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                 </Label>
                 <Select value={rating} onValueChange={setRating}>
                   <SelectTrigger id="rating">
@@ -220,8 +250,10 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
                           alt="Business image preview"
                           className="w-full h-full object-contain"
                           onError={(e) => {
-                            console.error("Image failed to load:", imageUrl)
-                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(name)}`
+                            console.error("Image failed to load:", imageUrl);
+                            e.currentTarget.src = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(
+                              name
+                            )}`;
                           }}
                         />
                       </div>
@@ -235,7 +267,11 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
                     <span className="text-sm text-muted-foreground truncate max-w-[70%]">
                       {imageUrl || "No image selected"}
                     </span>
-                    <Button variant="outline" size="sm" onClick={() => setShowImageUploader(true)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImageUploader(true)}
+                    >
                       {imageUrl ? "Replace Image" : "Add Image"}
                     </Button>
                   </div>
@@ -244,18 +280,30 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
 
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="website">Website</Label>
-                  <Input id="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                  <Input
+                    id="website"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -297,5 +345,5 @@ export default function EditBestOfPage({ params }: { params: Promise<{ id: strin
         />
       )}
     </div>
-  )
+  );
 }
