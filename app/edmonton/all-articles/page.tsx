@@ -29,6 +29,11 @@ import { Article } from '@/lib/types/article'
 // Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
 
+// SAFETY: Cap the maximum number of articles rendered to avoid
+// oversized ISR fallback pages on Vercel (FALLBACK_BODY_TOO_LARGE).
+// This route was previously generating ~21MB HTML responses.
+const MAX_EDMONTON_ARTICLES = 120
+
 /**
  * Edmonton All Articles Page Component
  * 
@@ -39,6 +44,7 @@ export default async function EdmontonAllArticlesPage() {
   
   // PERFORMANCE: Sort articles by date
   const sortedArticles = sortArticlesByDate(articles)
+  const visibleArticles = sortedArticles.slice(0, MAX_EDMONTON_ARTICLES)
 
   return (
     <>
@@ -67,7 +73,7 @@ export default async function EdmontonAllArticlesPage() {
                     All Edmonton Articles
                   </h1>
                   <p className="max-w-[900px] text-muted-foreground md:text-xl mx-auto">
-                    Discover all {sortedArticles.length} articles about Edmonton, Alberta's capital city.
+                    Discover the latest {visibleArticles.length} of {sortedArticles.length} articles about Edmonton, Alberta's capital city.
                   </p>
                 </div>
               </div>
@@ -77,9 +83,9 @@ export default async function EdmontonAllArticlesPage() {
           {/* Articles Grid */}
           <section className="w-full py-8">
             <div className="container mx-auto px-4 md:px-6">
-              {sortedArticles.length > 0 ? (
+              {visibleArticles.length > 0 ? (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {sortedArticles.map((article) => (
+                  {visibleArticles.map((article) => (
                     <ArticleCard key={article.id} article={article} />
                   ))}
                 </div>

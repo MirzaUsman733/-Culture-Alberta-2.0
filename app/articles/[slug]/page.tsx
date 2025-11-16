@@ -42,10 +42,21 @@ export async function generateStaticParams() {
   try {
     const { loadOptimizedFallback } = await import('@/lib/optimized-fallback')
     const allContent = await loadOptimizedFallback()
+    
+    // Safety check: ensure allContent is an array
+    if (!Array.isArray(allContent)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('generateStaticParams: allContent is not an array:', typeof allContent)
+      }
+      return []
+    }
+    
     const publishedArticles = allContent.filter(
       (article: any) => 
+        article &&
         article.type !== 'event' &&
-        (article.status === 'published' || !article.status)
+        (article.status === 'published' || !article.status) &&
+        article.title
     )
     
     return publishedArticles.map((article: any) => ({

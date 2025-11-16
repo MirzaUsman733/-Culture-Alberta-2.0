@@ -93,14 +93,21 @@ export async function findArticleBySlug(slug: string): Promise<Article | null> {
   const normalizedSlug = slug.toLowerCase()
   
   // PERFORMANCE: Use O(1) index lookup instead of O(n) search
-  const { index } = await getArticlesWithIndex()
+  const { index, articles } = await getArticlesWithIndex()
   let article = index.get(normalizedSlug)
   
   if (article) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Found article by exact slug match: ${normalizedSlug}`)
+    }
     return article as Article
   }
   
   // Try alternative slug variations (in case of slight differences)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔍 Searching for slug: ${normalizedSlug} (index size: ${index.size}, articles: ${articles.length})`)
+  }
+  
   for (const [indexSlug, indexedArticle] of index.entries()) {
     if (indexSlug.includes(normalizedSlug) || normalizedSlug.includes(indexSlug)) {
       // Verify it's a close match
@@ -108,15 +115,43 @@ export async function findArticleBySlug(slug: string): Promise<Article | null> {
       if (articleSlug === normalizedSlug || 
           articleSlug.includes(normalizedSlug) || 
           normalizedSlug.includes(articleSlug)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ Found article by partial match: ${indexSlug} -> ${articleSlug}`)
+        }
         return indexedArticle as Article
       }
     }
   }
   
-  // PERFORMANCE: Skip Supabase query in production (use fallback file only)
-  // Supabase queries are slow and the fallback file should have all articles
+  // Last resort: search through articles array (shouldn't happen if index is correct)
+  if (articles.length > 0) {
+    const found = articles.find((item: any) => {
+      const itemSlug = createSlug(item.title).toLowerCase()
+      return itemSlug === normalizedSlug || 
+             itemSlug.includes(normalizedSlug) || 
+             normalizedSlug.includes(itemSlug)
+    })
+    
+    if (found) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Found article by array search: ${createSlug(found.title).toLowerCase()}`)
+      }
+      return found as Article
+    }
+  }
+  
   if (process.env.NODE_ENV === 'development') {
-    // Only try Supabase in development for debugging
+    console.log(`❌ Article not found for slug: ${normalizedSlug}`)
+    // Show first few slugs for debugging
+    const sampleSlugs = Array.from(index.keys()).slice(0, 5)
+    console.log(`📋 Sample slugs in index:`, sampleSlugs)
+  }
+  
+  // PERFORMANCE: Skip Supabase queries entirely (too slow, use fallback file only)
+  // Supabase queries add 3+ second delays and the fallback file has all articles
+  // Uncomment below only if you need to debug missing articles
+  if (false && process.env.NODE_ENV === 'development') {
+    // Only try Supabase in development for debugging (currently disabled)
     try {
       const articlePreviewFields = [
         'id',
@@ -305,9 +340,9 @@ export async function ensureFullContent(
     }
   }
   
-  // PERFORMANCE: Skip Supabase in production (too slow)
-  // Only try in development if really needed
-  if (process.env.NODE_ENV === 'development') {
+  // PERFORMANCE: Skip Supabase queries entirely (too slow)
+  // Uncomment below only if you need to debug missing content
+  if (false && process.env.NODE_ENV === 'development') {
     try {
       const contentQuery = supabase
         .from('articles')
