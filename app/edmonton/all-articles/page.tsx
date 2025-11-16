@@ -20,20 +20,24 @@ import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { PageSEO } from '@/components/seo/page-seo'
 import { getArticleUrl } from '@/lib/utils/article-url'
-import { getAllCityArticles } from '@/lib/data/city-category-data'
 import { formatRelativeDate } from '@/lib/utils/date'
 import { getArticleTitle, getArticleExcerpt, getArticleImage, getArticleCategory, sortArticlesByDate } from '@/lib/utils/article-helpers'
 import { Article } from '@/lib/types/article'
+import { getPaginatedCityArticles } from '@/lib/data/city-category-data'
 
 // PERFORMANCE: Use ISR with aggressive caching for instant loads
 // Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
 
-// SAFETY: Cap the maximum number of articles rendered to avoid
-// oversized ISR fallback pages on Vercel (FALLBACK_BODY_TOO_LARGE).
-// This route was previously generating ~21MB HTML responses on Vercel.
-// A lower cap keeps the fallback HTML well below the 19.07MB limit.
-const MAX_EDMONTON_ARTICLES = 60
+const PAGE_SIZE = 30
+
+type EdmontonArticlesResponse = {
+  items: Article[]
+  page: number
+  totalPages: number
+  total: number
+  limit: number
+}
 
 /**
  * Edmonton All Articles Page Component
@@ -41,11 +45,13 @@ const MAX_EDMONTON_ARTICLES = 60
  * Displays all articles for Edmonton (excluding events)
  */
 export default async function EdmontonAllArticlesPage() {
-  const articles = await getAllCityArticles('edmonton')
+  // Use paginated, lightweight data so we don't render an oversized ISR page
+  const data = await getPaginatedCityArticles('edmonton', 1, PAGE_SIZE)
+  const articles = data.items
   
   // PERFORMANCE: Sort articles by date
   const sortedArticles = sortArticlesByDate(articles)
-  const visibleArticles = sortedArticles.slice(0, MAX_EDMONTON_ARTICLES)
+  const visibleArticles = sortedArticles
 
   return (
     <>

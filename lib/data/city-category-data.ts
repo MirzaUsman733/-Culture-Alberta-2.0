@@ -18,6 +18,7 @@
 
 import { Article } from '@/lib/types/article'
 import { loadOptimizedFallback } from '@/lib/optimized-fallback'
+import { sortArticlesByDate } from '@/lib/utils/article-helpers'
 
 /**
  * Food & Drink category keywords for filtering
@@ -141,6 +142,46 @@ export async function getAllCityArticles(city: 'calgary' | 'edmonton'): Promise<
       console.error(`Error loading all ${city} articles:`, error)
     }
     return []
+  }
+}
+
+/**
+ * OPTIMIZED: Gets a paginated list of articles for a specific city
+ * 
+ * - Uses the same underlying optimized fallback as getAllCityArticles
+ * - Never includes content in the returned articles
+ * - Sorted by newest first
+ */
+export async function getPaginatedCityArticles(
+  city: 'calgary' | 'edmonton',
+  page: number,
+  limit: number
+): Promise<{
+  items: Article[]
+  page: number
+  totalPages: number
+  total: number
+  limit: number
+}> {
+  const all = await getAllCityArticles(city)
+  const sorted = sortArticlesByDate(all)
+
+  const safeLimit = Math.min(Math.max(limit, 1), 60)
+  const total = sorted.length
+  const totalPages = Math.max(Math.ceil(total / safeLimit), 1)
+  const safePage = Math.min(Math.max(page, 1), totalPages)
+
+  const start = (safePage - 1) * safeLimit
+  const end = start + safeLimit
+
+  const items = sorted.slice(start, end)
+
+  return {
+    items,
+    page: safePage,
+    totalPages,
+    total,
+    limit: safeLimit,
   }
 }
 
