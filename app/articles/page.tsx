@@ -21,15 +21,17 @@ import Image from 'next/image'
 import { ArrowRight, Clock, MapPin, Tag } from 'lucide-react'
 import NewsletterSignup from '@/components/newsletter-signup'
 import { getArticleUrl } from '@/lib/utils/article-url'
-import { getAllArticles } from '@/lib/articles'
+import { getPaginatedArticles } from '@/lib/articles'
 import { formatRelativeDate } from '@/lib/utils/date'
-import { getArticleTitle, getArticleExcerpt, getArticleImage, getArticleCategory, sortArticlesByDate } from '@/lib/utils/article-helpers'
+import { getArticleTitle, getArticleExcerpt, getArticleImage, getArticleCategory } from '@/lib/utils/article-helpers'
 import { Article } from '@/lib/types/article'
 import { PageSEO } from '@/components/seo/page-seo'
 
 // PERFORMANCE: Use ISR with aggressive caching for instant loads
 // Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
+
+const PAGE_SIZE = 30
 
 /**
  * Articles Listing Page Component
@@ -42,16 +44,8 @@ export const revalidate = 120
  * - Efficient sorting
  */
 export default async function ArticlesPage() {
-  const allArticles = await getAllArticles()
-  
-  // PERFORMANCE: Remove content field for listings (not needed for article cards)
-  const articlesWithoutContent = allArticles.map(article => {
-    const { content, ...articleWithoutContent } = article
-    return articleWithoutContent
-  })
-  
-  // PERFORMANCE: Sort once
-  const sortedArticles = sortArticlesByDate(articlesWithoutContent as Article[])
+  const { items, total } = await getPaginatedArticles(1, PAGE_SIZE)
+  const sortedArticles = items
   
   // Extract unique categories for sidebar
   const uniqueCategories = Array.from(
@@ -90,12 +84,12 @@ export default async function ArticlesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-12">
               {/* Articles Grid */}
               <div className="space-y-8">
-                <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">
                     Latest Articles
                   </h2>
                   <div className="text-sm text-gray-500">
-                    {sortedArticles.length} total
+                    Showing {sortedArticles.length} of {total} articles
                   </div>
                 </div>
 

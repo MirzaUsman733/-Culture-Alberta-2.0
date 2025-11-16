@@ -37,7 +37,10 @@ const OPTIMIZED_FALLBACK_PATH = path.join(
 );
 const MAX_EXCERPT_LENGTH = 150;
 const MAX_TITLE_LENGTH = 80;
-const MAX_CONTENT_LENGTH = 1000000;
+// Hard cap on stored content length to prevent oversized ISR pages.
+// This is only used as a fallback; full content can still be fetched
+// from Supabase or APIs when truly needed.
+const MAX_CONTENT_LENGTH = 100_000; // ~100KB
 
 function optimizeArticle(article: Article): OptimizedArticle {
   return {
@@ -51,7 +54,10 @@ function optimizeArticle(article: Article): OptimizedArticle {
         ? article.excerpt.substring(0, MAX_EXCERPT_LENGTH) + "..."
         : article.excerpt || "",
     description: article.description || "",
-    content: article.content || "", // Use full content without truncation
+    content:
+      article.content && article.content.length > MAX_CONTENT_LENGTH
+        ? article.content.substring(0, MAX_CONTENT_LENGTH)
+        : article.content || "",
     category: article.category || "General",
     categories: article.categories || [],
     status: article.status || "published",

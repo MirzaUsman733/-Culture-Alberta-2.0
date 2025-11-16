@@ -20,14 +20,16 @@ import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { PageSEO } from '@/components/seo/page-seo'
 import { getArticleUrl } from '@/lib/utils/article-url'
-import { getAllCityArticles } from '@/lib/data/city-category-data'
 import { formatRelativeDate } from '@/lib/utils/date'
 import { getArticleTitle, getArticleExcerpt, getArticleImage, getArticleCategory, sortArticlesByDate } from '@/lib/utils/article-helpers'
 import { Article } from '@/lib/types/article'
+import { getPaginatedCityArticles } from '@/lib/data/city-category-data'
 
 // PERFORMANCE: Use ISR with aggressive caching for instant loads
 // Revalidates every 2 minutes - faster updates while maintaining speed
 export const revalidate = 120
+
+const PAGE_SIZE = 30
 
 /**
  * Calgary All Articles Page Component
@@ -35,7 +37,9 @@ export const revalidate = 120
  * Displays all articles for Calgary (excluding events)
  */
 export default async function CalgaryAllArticlesPage() {
-  const articles = await getAllCityArticles('calgary')
+  // Use paginated, lightweight data so we don't render an oversized ISR page
+  const data = await getPaginatedCityArticles('calgary', 1, PAGE_SIZE)
+  const articles = data.items
   
   // PERFORMANCE: Sort articles by date
   const sortedArticles = sortArticlesByDate(articles)

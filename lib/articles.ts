@@ -13,6 +13,7 @@ import {
   updateArticle as updateArticleInSupabase,
 } from "./supabase-articles";
 import { Article } from "./types/article";
+import { sortArticlesByDate } from "./utils/article-helpers";
 
 // SUSTAINABLE FALLBACK SYSTEM - Works with unlimited articles
 // These functions try Supabase first, then fall back to optimized backup
@@ -61,6 +62,53 @@ export async function getHomepageArticles(): Promise<Article[]> {
     console.error("❌ Optimized fallback failed:", fallbackError);
     return [];
   }
+}
+
+/**
+ * OPTIMIZED: Gets a paginated, lightweight list of all articles
+ *
+ * - Uses optimized fallback as source
+ * - Excludes events
+ * - Never includes content field (for safe ISR/page size)
+ * - Sorted by newest first
+ */
+export async function getPaginatedArticles(
+  page: number,
+  limit: number
+): Promise<{
+  items: Article[];
+  page: number;
+  totalPages: number;
+  total: number;
+  limit: number;
+}> {
+  const all = await getAllArticles();
+
+  // Strip content for listing payloads
+  const withoutContent = all.map((article) => {
+    const { content, ...rest } = article as any;
+    return rest as Article;
+  });
+
+  const sorted = sortArticlesByDate(withoutContent);
+
+  const safeLimit = Math.min(Math.max(limit, 1), 60);
+  const total = sorted.length;
+  const totalPages = Math.max(Math.ceil(total / safeLimit), 1);
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+
+  const start = (safePage - 1) * safeLimit;
+  const end = start + safeLimit;
+
+  const items = sorted.slice(start, end);
+
+  return {
+    items,
+    page: safePage,
+    totalPages,
+    total,
+    limit: safeLimit,
+  };
 }
 
 export async function getCityArticles(city: string): Promise<Article[]> {
