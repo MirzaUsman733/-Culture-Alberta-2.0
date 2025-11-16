@@ -21,7 +21,8 @@ import { getAllEvents } from '@/lib/events'
 
 // PERFORMANCE: Slug-to-article index for O(1) lookup
 let slugIndex: Map<string, Article> | null = null
-let articlesCache: Article[] | null = null
+// Always use a concrete array for the cache to avoid null checks
+let articlesCache: Article[] = []
 let cacheTimestamp: number = 0
 const CACHE_DURATION = 2 * 60 * 1000 // 2 minutes
 
@@ -51,7 +52,7 @@ async function getArticlesWithIndex(): Promise<{ articles: Article[], index: Map
   const now = Date.now()
   
   // Return cached if still fresh
-  if (articlesCache && slugIndex && now - cacheTimestamp < CACHE_DURATION) {
+  if (articlesCache.length && slugIndex && now - cacheTimestamp < CACHE_DURATION) {
     return { articles: articlesCache, index: slugIndex }
   }
   
@@ -225,10 +226,8 @@ export async function findArticleBySlug(slug: string): Promise<Article | null> {
           }
           
           // Add to cache for next time
-          if (articlesCache) {
-            articlesCache.push(article)
-            slugIndex = buildSlugIndex(articlesCache)
-          }
+          articlesCache.push(article)
+          slugIndex = buildSlugIndex(articlesCache)
           
           return article
         }
@@ -319,7 +318,7 @@ export async function ensureFullContent(
     }
     
     // If still not found, search through cached articles
-    if (!foundArticle && articlesCache) {
+    if (!foundArticle && articlesCache.length) {
       const found = articlesCache.find((item: any) => 
         item.id === article.id || 
         createSlug(item.title).toLowerCase() === normalizedSlug
