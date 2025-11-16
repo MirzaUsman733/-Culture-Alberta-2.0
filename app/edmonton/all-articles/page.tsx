@@ -31,8 +31,9 @@ export const revalidate = 120
 
 // SAFETY: Cap the maximum number of articles rendered to avoid
 // oversized ISR fallback pages on Vercel (FALLBACK_BODY_TOO_LARGE).
-// This route was previously generating ~21MB HTML responses.
-const MAX_EDMONTON_ARTICLES = 120
+// This route was previously generating ~21MB HTML responses on Vercel.
+// A lower cap keeps the fallback HTML well below the 19.07MB limit.
+const MAX_EDMONTON_ARTICLES = 60
 
 /**
  * Edmonton All Articles Page Component
